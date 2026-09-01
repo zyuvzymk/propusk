@@ -1,0 +1,364 @@
+:root {
+    --primary: #1a365d;
+    --primary-hover: #2a4365;
+    --bg: #e2e8f0; 
+    --card-bg: #f8fafc; 
+    --text: #2d3748;
+    --border: #cbd5e0;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 15px 10px; /* Уменьшили внешние отступы страницы */
+}
+.container, .container-wide {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    padding: 20px 30px; /* Сжали внутренние отступы карточки (было 40px) */
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(26, 54, 93, 0.05); 
+    box-sizing: border-box;
+    border: 1px solid #e2e8f0;
+}
+.container-wide {
+    max-width: 1300px;
+    padding: 20px 25px;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 10px; /* Сжали шапку */
+    margin-bottom: 15px;  /* Уменьшили отступ после шапки */
+}
+.logo-placeholder, .logo {
+    font-weight: bold;
+    font-size: 20px; /* Чуть уменьшили логотип */
+    color: var(--primary);
+    letter-spacing: 0.5px;
+}
+.logo { font-size: 18px; }
+.admin-btn {
+    padding: 5px 12px; /* Компактная кнопка входа */
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: #ffffff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+.admin-btn:hover, .btn {
+    background: var(--primary);
+    color: white;
+}
+.btn {
+    border: none;
+    padding: 8px; /* Уменьшили высоту кнопок */
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 5px;
+    transition: background 0.2s;
+}
+.btn:hover { background: var(--primary-hover); }
+h1, h2 {
+    font-size: 20px; /* Сжали заголовки страниц */
+    margin: 0 0 5px 0;
+    color: var(--primary);
+}
+h2 { font-size: 18px; text-align: center; margin-bottom: 4px; }
+.subtitle {
+    font-size: 12px; /* Уменьшили пояснительный текст */
+    color: #718096;
+    text-align: center;
+    margin-bottom: 15px; /* Меньше пустой зоны */
+}
+.section-title {
+    font-size: 13px; /* Компактные заголовки блоков 1, 2, 3... */
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin: 15px 0 10px 0; /* Резко сократили разбег между блоками */
+    padding-bottom: 4px;
+    border-bottom: 2px solid #cbd5e0;
+    letter-spacing: 0.5px;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 10px 15px; /* Сузили расстояние между инпутами */
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 8px; /* Сократили отступ под каждым полем */
+}
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+label {
+    font-size: 12px; /* Меньше и аккуратнее подписи полей */
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 3px; /* Прижали подпись к полю */
+}
+/* СДЕЛ canЛИ ИНПУТЫ ТОНКИМИ, КОМПАКТНЫМИ И СЖАТЫМИ */
+input, select, textarea {
+    padding: 6px 10px; /* Уменьшили внутренний отступ (было 11px) */
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    font-size: 13px; /* Аккуратный шрифт */
+    outline: none;
+    background-color: #ffffff; 
+    transition: all 0.15s ease;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(26, 54, 93, 0.05);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+th, td {
+    padding: 6px 10px; /* Сжали ячейки таблиц почти в 2 раза */
+    border: 1px solid var(--border);
+    text-align: left;
+    font-size: 13px;
+}
+th {
+    background: #edf2f7;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.add-row-btn {
+    background: #ffffff;
+    border: 1px dashed var(--primary);
+    color: var(--primary);
+    padding: 6px; /* Тонкая и аккуратная кнопка добавления */
+    width: 100%;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 2px;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.15s ease;
+}
+.add-row-btn:hover {
+    background: #ebf8ff;
+}
+.submit-box {
+    margin-top: 20px; /* Прижали блок отправки ближе к форме */
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+.submit-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 20px; /* Плотная кнопка отправки */
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    letter-spacing: 0.5px;
+    transition: background 0.2s ease;
+}
+.submit-btn:hover {
+    background: var(--primary-hover);
+}
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #4a5568;
+}
+.hp-field {
+    display: none !important;
+    position: absolute;
+    left: -9999px;
+}
+.login-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: var(--bg);
+}
+.login-card {
+    background: var(--card-bg);
+    padding: 25px; /* Сжали карточку логина */
+    border-radius: 6px;
+    box-shadow: 0 15px 20px rgba(26, 54, 93, 0.08);
+    width: 100%;
+    max-width: 360px;
+    box-sizing: border-box;
+    border: 1px solid #e2e8f0;
+}
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+    color: #718096;
+    text-decoration: none;
+    font-size: 13px;
+}
+.back-link:hover {
+    color: var(--primary);
+}
+
+/* Элементы реестра (Плотная таблица) */
+.search-box { display: flex; width: 100%; gap: 8px; margin-bottom: 10px; box-sizing: border-box; }
+.search-input { flex-grow: 1; padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 13px; outline: none; background: white; }
+.search-btn { padding: 0 15px; font-size: 13px; }
+tr.clickable-row { cursor: pointer; transition: background-color 0.15s ease; }
+tr.clickable-row:hover { background-color: #f0f5fa !important; }
+
+/* Компактное обрамление статусов */
+.badge { 
+    padding: 3px 10px; /* Тонкие овалы статусов */
+    border-radius: 50px; 
+    font-size: 11px; 
+    font-weight: 700; 
+    display: inline-block; 
+    text-align: center; 
+    border: 1px solid transparent;
+}
+.badge-waiting { background-color: #fffaf0 !important; color: #dd6b20 !important; border-color: #fbd38d !important; }
+.badge-approved { background-color: #f0fff4 !important; color: #38a169 !important; border-color: #9ae6b4 !important; }
+.badge-rejected { background-color: #fff5f5 !important; color: #e53e3e !important; border-color: #feb2b2 !important; }
+
+.search-section { background: #ffffff; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
+.filters { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.filter-btn { background: white; border: 1px solid #cbd5e0; padding: 4px 10px; border-radius: 20px; cursor: pointer; color: #4a5568; font-weight: 500; font-size: 12px; }
+.filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+.user-info { font-size: 13px; color: #4a5568; display: flex; align-items: center; gap: 10px; }
+.logout-btn { color: #e53e3e; text-decoration: none; font-weight: 500; }
+.pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #718096; }
+.page-btn { background: white; border: 1px solid #cbd5e0; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.page-btn:hover { background: #edf2f7; }
+
+/* Элементы просмотра (Двухколоночный макет) */
+.main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+.info-panel { background: #ffffff; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; }
+.data-row { display: flex; margin-bottom: 6px; font-size: 13px; line-height: 1.4; align-items: center; }
+.data-label { width: 140px; color: #718096; font-weight: 500; }
+.data-value { flex: 1; color: var(--text); }
+.edit-date-btn { background: none; border: 1px solid var(--primary); color: var(--primary); padding: 1px 6px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-left: 5px; }
+.edit-date-btn:hover { background: #ebf8ff; }
+.date-input-inline { padding: 2px 4px; border: 1px solid var(--primary); border-radius: 4px; font-size: 12px; display: none; width: 100px; }
+.passengers-table { width: 100%; border-collapse: collapse; margin-top: 5px; margin-bottom: 5px; background: white; }
+.passengers-table th, .passengers-table td { padding: 5px 8px; border: 1px solid #cbd5e0; font-size: 12px; vertical-align: middle; }
+.passengers-table th { background: #edf2f7; text-align: left; }
+.row-excluded { text-decoration: line-through; color: #a0aec0; background-color: #fff5f5; }
+.exclude-btn { background: #fed7d7; color: #9b2c2c; border: 1px solid #feb2b2; padding: 2px 6px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: 600; }
+.exclude-btn:hover { background: #feb2b2; }
+.exclude-btn.cancelled { background: #edf2f7; color: #4a5568; border-color: #cbd5e0; }
+
+/* Сжатый предпросмотр PDF */
+.pdf-panel { background: #718096; padding: 12px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 480px; box-shadow: inset 0 0 15px rgba(0,0,0,0.1); }
+.pdf-title { color: white; font-size: 13px; font-weight: 500; margin-bottom: 10px; width: 100%; text-align: left; }
+.pdf-sheet { background: white; width: 100%; max-width: 400px; aspect-ratio: 1 / 1.41; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.25); box-sizing: border-box; font-family: "Courier New", Courier, monospace; position: relative; font-size: 10px; color: #000; line-height: 1.3; }
+.pdf-header { text-align: center; font-weight: bold; border-bottom: 1px double #000; padding-bottom: 6px; margin-bottom: 10px; font-size: 11px; }
+.pdf-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 20px; color: rgba(229, 62, 62, 0.12); font-weight: bold; border: 3px dashed rgba(229, 62, 62, 0.12); padding: 8px 15px; white-space: nowrap; pointer-events: none; font-family: sans-serif; }
+.action-bar { border-top: 2px solid #e2e8f0; padding-top: 15px; display: flex; gap: 10px; justify-content: flex-start; }
+
+.remove-row-btn { background: #fed7d7; color: #9b2c2c; border: 1px solid #feb2b2; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; transition: all 0.15s ease; }
+.remove-row-btn:hover { background: #feb2b2; color: #742a2a; }
+.remove-row-btn:disabled { background: #edf2f7; color: #a0aec0; border-color: #cbd5e0; cursor: not-allowed; }
+
+/* ==============================================================================
+   ИСПРАВЛЕНИЕ ОТОБРАЖЕНИЯ МОДАЛЬНОГО ОКНА ОТКЛОНЕНИЯ
+   ============================================================================== */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Затемнение фона вокруг окна */
+    display: none; /* ЖЕСТКО СКРЫВАЕМ ОКНО ПО УМОЛЧАНИЮ */
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal-window {
+    background: #ffffff;
+    padding: 20px 25px;
+    border-radius: 6px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
+}
+.modal-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+.modal-textarea {
+    width: 100%;
+    height: 80px;
+    padding: 8px;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    font-size: 13px;
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+    background: #ffffff;
+}
+.modal-textarea:focus {
+    border-color: var(--primary);
+}
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* ==============================================================================
+   КОРРЕКТИРОВКА ПОЛЕЙ ВВОДА ВНУТРИ ТАБЛИЦЫ НА ГЛАВНОЙ СТРАНИЦЕ
+   ============================================================================== */
+#visitors-table td input {
+    padding: 4px 8px; /* Уменьшенный вертикальный отступ для полей в таблице */
+    height: auto;
+    box-sizing: border-box;
+    margin: 0;
+}
+#visitors-table td {
+    vertical-align: middle; /* Выравнивание элементов по центру ячейки */
+    padding: 6px;
+}
+
+/* ==============================================================================
+   РАСТЯГИВАНИЕ ПОЛЕЙ В ТАБЛИЦЕ НА ВСЮ ШИРИНУ ЯЧЕЙКИ
+   ============================================================================== */
+#visitors-table td input {
+    width: 100% !important; /* Заставляем инпут занять всю ширину ячейки */
+    box-sizing: border-box;  /* Защищаем от вылезания за границы при паддингах */
+}
+#visitors-table td {
+    padding: 6px 10px;       /* Одинаковые аккуратные отступы вокруг инпутов */
+}

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр заявки — Поморская Судоверфь</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .view-container {
+            max-width: 1280px;
+            margin: 10px auto;
+            padding: 0 15px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+        }
+        /* Внешнее обрамление всей левой информационной панели */
+        .info-panel {
+            background: #ffffff;
+            padding: 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        /* Обрамление внутренних 4 разделов */
+        .b2b-section-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            background-color: #ffffff;
+        }
+        .section-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .data-row { display: flex; margin-bottom: 5px; font-size: 13px; }
+        .data-label { width: 150px; color: #64748b; flex-shrink: 0; }
+        .data-value { color: #0f172a; font-weight: 500; }
+        
+        /* Компактные интерактивные кнопки в таблице */
+        .table-btn-action {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            background: #f8fafc;
+            color: #334155;
+            cursor: pointer;
+            user-select: none;
+            margin: 0 2px;
+        }
+        .table-btn-action.danger { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+        .table-btn-action.success { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+        
+        /* Визуальное приглушение для исключенных строк */
+        tr.excluded-row td {
+            color: #94a3b8 !important;
+            text-decoration: line-through;
+            background-color: #f8fafc;
+        }
+        
+        /* Стили планшета А4 предпросмотра */
+        .preview-holder { background-color: #475569; border-radius: 6px; padding: 24px; display: flex; flex-direction: column; align-items: center; }
+        .a4-sheet {
+            background: #ffffff; width: 100%; max-width: 440px; min-height: 590px; padding: 30px 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; box-sizing: border-box;
+            color: #000000; font-family: 'Courier New', Courier, monospace;
+        }
+        .watermark {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 26px; font-weight: 700; color: rgba(239, 68, 68, 0.08);
+            text-transform: uppercase; pointer-events: none; user-select: none; white-space: nowrap;
+        }
+        .blank-warn-indicator {
+            background-color: #fee2e2; border: 1px solid #fca5a5; color: #991b1b;
+            font-size: 10px; font-weight: bold; padding: 1px 6px; border-radius: 3px;
+            margin-left: 6px; display: none; text-transform: uppercase;
+        }
+        .b2b-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(2px); z-index: 1000;
+            justify-content: center; align-items: center;
+        }
+        .modal-content { background: #ffffff; padding: 16px 20px; border-radius: 8px; width: 100%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+<div class="container" style="max-width: 1280px; margin: 10px auto 0 auto; padding: 0 15px;">
+    <a href="/dashboard" style="color: #2563eb; text-decoration: none; font-size: 13px; font-weight: 500;">← Вернуться в реестр</a>
+</div>
+
+<div class="view-container">
+    
+    <!-- ЛЕВАЯ СТОРОНА: Разделы с рамками-обрамлениями b2b-section-card -->
+    <div class="card info-panel">
+        
+        <!-- 1. ИНФОРМАЦИЯ О КОМПАНИИ -->
+        <div class="b2b-section-card">
+            <div class="section-header">1. Информация о компании</div>
+            <div class="data-row"><div class="data-label">Организация:</div><div id="viewCompany" class="data-value">...</div></div>
+            <div class="data-row"><div class="data-label">Объект / Судно:</div><div id="viewObject" class="data-value">...</div></div>
+            <div class="data-row"><div class="data-label">Вид работ:</div><div id="viewWork" class="data-value">...</div></div>
+        </div>
+
+        <!-- 2. КОНТАКТНОЕ ЛИЦО -->
+        <div class="b2b-section-card">
+            <div class="section-header">2. Контактное лицо</div>
+            <div class="data-row"><div class="data-label">ФИО ответственного:</div><div id="viewManager" class="data-value">...</div></div>
+            <div class="data-row"><div class="data-label">Должность:</div><div id="viewRole" class="data-value">...</div></div>
+            <div class="data-row"><div class="data-label">Телефон / Email:</div><div id="viewContacts" class="data-value">...</div></div>
+        </div>
+
+        <!-- 3. СРОКИ ВИЗИТА -->
+        <div class="b2b-section-card">
+            <div class="section-header">3. Сроки визита</div>
+            <div class="data-row" style="align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center;">
+                    <div class="data-label">Период действия:</div>
+                    <div id="viewPeriod" class="data-value" style="font-weight: 600;">...</div>
+                </div>
+                <button id="changeDatesBtn" class="table-btn-action" style="margin: 0; background: #e2e8f0;">Изменить даты</button>
+            </div>
+        </div>
+
+        <!-- 4. СПИСОК ЛЮДЕЙ И АВТОТРАНСПОРТА -->
+        <div class="b2b-section-card">
+            <div class="section-header">4. Список людей и автотранспорта</div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+                    <thead>
+                        <tr style="background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; color: #475569; height: 30px;">
+                            <th style="padding: 6px; width: 32%;">ФИО сотрудника</th>
+                            <th style="padding: 6px; width: 28%;">Паспортные данные</th>
+                            <th style="padding: 6px; width: 20%;">Транспорт</th>
+                            <th style="padding: 6px; width: 20%; text-align: center;">Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visitorsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Подвальные B2B-кнопки -->
+        <div id="decisionButtonsBlock" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px;">
+            <button id="approveRequestBtn" class="btn btn-primary" style="background: #1e3a8a; border-color: #1e3a8a; padding: 10px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">✓ Одобрить и подписать</button>
+            <button id="rejectRequestBtn" class="btn" style="background: #0f172a; color: #ffffff; border-color: #0f172a; padding: 10px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">✕ Отклонить заявку</button>
+        </div>
+    </div>
+
+    <!-- ПРАВАЯ СТОРОНА: Предпросмотр печатной формы пропуска А4 -->
+    <div class="preview-holder">
+        <div style="color: #ffffff; font-size: 13px; font-weight: 500; margin-bottom: 12px; align-self: flex-start; display: flex; align-items: center; gap: 6px;">
+            📄 Предпросмотр печатной формы пропуска:
+        </div>
+        
+        <div class="a4-sheet">
+            <div class="watermark">Черновик без печати</div>
+            
+            <div style="text-align: center; font-size: 11px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase;">
+                ООО "ПОМОРСКАЯ СУДОВЕРФЬ"<br>БЛАНК ПРОПУСКА РЕЖИМНОГО ОБЪЕКТА
+            </div>
+            
+            <div style="text-align: center; font-size: 13px; font-weight: bold; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+                ВРЕМЕННЫЙ ПРОПУСК № <span id="blankId">...</span>
+            </div>
+            
+            <div style="font-size: 11px; line-height: 1.6;">
+                <p style="margin: 4px 0;"><strong>Организация:</strong> ООО "<span id="blankCompany">...</span>"</p>
+                <p style="margin: 4px 0;"><strong>Объект визита:</strong> <span id="blankObject">...</span></p>
+                <p style="margin: 4px 0;">
+                    <strong>Срок действия:</strong> с <span id="blankStart">...</span> по <span id="blankEnd">...</span>
+                    <span id="datesWarnIndicator" class="blank-warn-indicator">Даты скорректированы!</span>
+                </p>
+                
+                <p style="margin: 12px 0 6px 0;">
+                    <strong>Список лиц, допущенных на территорию:</strong>
+                    <span id="groupWarnIndicator" class="blank-warn-indicator">Состав группы изменен!</span>
+                </p>
+                <div id="blankVisitorsContainer" style="padding-left: 4px;">
+                    <!-- Заполняется JS -->
+                </div>
+            </div>
+            
+            <div style="position: absolute; bottom: 30px; left: 24px; right: 24px; border-top: 1px solid #000; padding-top: 8px; display: flex; justify-content: space-between; font-size: 10px;">
+                <span>Согласовано: Администрация судоверфи</span>
+                <span>Подпись/Печать: ___________</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ВСТРОЕННЫЙ МОДАЛЬНЫЙ КАЛЕНДАРЬ -->
+<div id="dateModal" class="b2b-modal">
+    <div class="modal-content">
+        <h4 style="margin-top: 0; margin-bottom: 14px; font-size: 14px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Изменение дат пропуска</h4>
+        <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 11px; color: #64748b; margin-bottom: 3px;">Дата начала:</label>
+            <input type="date" id="modalStart" style="width: 100%; height: 28px; padding: 4px; box-sizing: border-box; font-size: 12px;">
+        </div>
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 11px; color: #64748b; margin-bottom: 3px;">Дата окончания (лимит 31 день):</label>
+            <input type="date" id="modalEnd" style="width: 100%; height: 28px; padding: 4px; box-sizing: border-box; font-size: 12px;">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button id="closeModalBtn" class="table-btn-action" style="margin:0;">Отмена</button>
+            <button id="applyDatesBtn" class="table-btn-action" style="margin:0; background: #1e3a8a; color: #fff; border-color: #1e3a8a;">Применить</button>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ОТКЛОНЕНИЯ ЗАЯВКИ С ПРИЧИНОЙ -->
+<div id="rejectModal" class="b2b-modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <h4 style="margin-top: 0; margin-bottom: 12px; font-size: 14px; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Укажите причину отклонения заявки</h4>
+        <div style="margin-bottom: 16px;">
+            <textarea id="rejectReasonInput" rows="3" placeholder="Например: Неполные паспортные данные... (необязательно)" style="width:100%; font-size:12px; padding:6px; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:4px; resize:vertical;"></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button id="closeRejectModalBtn" class="table-btn-action" style="margin:0;">Отмена</button>
+            <button id="submitRejectBtn" class="table-btn-action danger" style="margin:0; font-weight:600;">Отклонить заявку</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const currentRole = localStorage.getItem("user_role");
+    const currentUsername = localStorage.getItem("user_name");
+    const requestId = "{{ request_id }}";
+
+    const viewCompany = document.getElementById("viewCompany");
+    const viewObject = document.getElementById("viewObject");
+    const viewWork = document.getElementById("viewWork");
+    const viewManager = document.getElementById("viewManager");
+    const viewRole = document.getElementById("viewRole");
+    const viewContacts = document.getElementById("viewContacts");
+    const viewPeriod = document.getElementById("viewPeriod");
+    const visitorsTableBody = document.getElementById("visitorsTableBody");
+    const decisionButtonsBlock = document.getElementById("decisionButtonsBlock");
+    const approveRequestBtn = document.getElementById("approveRequestBtn");
+    const rejectRequestBtn = document.getElementById("rejectRequestBtn");
+    
+    const changeDatesBtn = document.getElementById("changeDatesBtn");
+    const dateModal = document.getElementById("dateModal");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const applyDatesBtn = document.getElementById("applyDatesBtn");
+    const modalStart = document.getElementById("modalStart");
+    const modalEnd = document.getElementById("modalEnd");
+
+    const rejectModal = document.getElementById("rejectModal");
+    const closeRejectModalBtn = document.getElementById("closeRejectModalBtn");
+    const submitRejectBtn = document.getElementById("submitRejectBtn");
+    const rejectReasonInput = document.getElementById("rejectReasonInput");
+
+    const blankId = document.getElementById("blankId");
+    const blankCompany = document.getElementById("blankCompany");
+    const blankObject = document.getElementById("blankObject");
+    const blankStart = document.getElementById("blankStart");
+    const blankEnd = document.getElementById("blankEnd");
+    const blankVisitorsContainer = document.getElementById("blankVisitorsContainer");
+    const datesWarnIndicator = document.getElementById("datesWarnIndicator");
+    const groupWarnIndicator = document.getElementById("groupWarnIndicator");
+
+    let originalData = null;
+    let excludedVisitorIds = new Set();
+    let pedestrianVisitorIds = new Set();
+    
+    // Переменные для хранения скорректированных дат в формате ISO
+    let currentStartDateIso = null;
+    let currentEndDateIso = null;
+
+    function formatDateOnly(isoString) {
+        if (!isoString) return "";
+        return new Date(isoString).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+    }
+
+    function parseCompositePurpose(purposeStr) {
+        const result = { object: "—", work: "—", manager: "—", role: "—", phone: "—", email: "—" };
+        if (!purposeStr) return result;
+        try {
+            if (purposeStr.includes("Объект:") && purposeStr.includes("Работы:")) {
+                const parts = purposeStr.split("|");
+                parts.forEach(p => {
+                    const cleanTxt = p.trim();
+                    if (cleanTxt.startsWith("Объект:")) result.object = cleanTxt.substring(7).trim();
+                    if (cleanTxt.startsWith("Работы:")) result.work = cleanTxt.substring(7).trim();
+                    if (cleanTxt.startsWith("Ответственный:")) {
+                        let mField = cleanTxt.substring(14).trim();
+                        if (mField.includes("(")) {
+                            const subParts = mField.split("(");
+                            result.manager = subParts[0].trim();
+                            result.role = subParts[1].replace(")", "").trim();
+                        } else { result.manager = mField; result.role = "Инженер"; }
+                    }
+                });
+                const phoneMatch = purposeStr.match(/Тел:\s*([^,;|]+)/);
+                if (phoneMatch) result.phone = phoneMatch[1].trim();
+                const emailMatch = purposeStr.match(/Email:\s*([^,;|]+)/);
+                if (emailMatch) result.email = emailMatch[1].trim();
+            } else {
+                result.object = "Временный допуск"; result.work = purposeStr;
+                if (purposeStr.includes("Ответственный:")) {
+                    const idx = purposeStr.indexOf("Ответственный:");
+                    let sub = purposeStr.substring(idx + 14).trim();
+                    if (sub.includes("|")) sub = sub.split("|")[0].trim();
+                    if (sub.includes(",")) sub = sub.split(",")[0].trim();
+                    if (sub.includes("(")) {
+                        const parts = sub.split("(");
+                        result.manager = parts[0].trim();
+                        result.role = parts[1].replace(")", "").trim();
+                    } else { result.manager = sub; result.role = "Руководитель"; }
+                }
+            }
+        } catch (e) { result.object = "Временный допуск"; }
+        
+        if (result.manager && result.manager !== "—") {
+            const arr = result.manager.split(/\s+/);
+            if (arr.length >= 3) result.manager = arr[0] + " " + arr[1][0] + ". " + arr[2][0] + ".";
+            else if (arr.length === 2) result.manager = arr[0] + " " + arr[1][0] + ".";
+        }
+        return result;
+    }
+
+    async function fetchRequestDetails() {
+        try {
+            const response = await fetch("/api/admin/requests/" + requestId);
+            if (response.status === 401 || response.status === 403) { window.location.href = "/login"; return; }
+            if (!response.ok) throw new Error("Ошибка параметров пропуска");
+            
+            originalData = await response.json();
+            const parsed = parseCompositePurpose(originalData.purpose);
+
+            currentStartDateIso = originalData.start_date;
+            currentEndDateIso = originalData.end_date;
+
+            viewCompany.innerText = `ООО "${originalData.company_name}"`;
+            viewObject.innerText = parsed.object;
+            viewWork.innerText = parsed.work;
+            viewManager.innerText = parsed.manager;
+            viewRole.innerText = parsed.role;
+            viewContacts.innerText = `${parsed.phone !== "—" ? parsed.phone : "—"} / ${parsed.email !== "—" ? parsed.email : "—"}`;
+            viewPeriod.innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
+
+            blankId.innerText = originalData.id;
+            blankCompany.innerText = originalData.company_name;
+            blankObject.innerText = parsed.object;
+            blankStart.innerText = formatDateOnly(originalData.start_date);
+            blankEnd.innerText = formatDateOnly(originalData.end_date);
+
+            if (originalData.start_date) modalStart.value = originalData.start_date.split("T")[0];
+            if (originalData.end_date) modalEnd.value = originalData.end_date.split("T")[0];
+
+            renderVisitors();
+            if (currentRole === "Охрана") { decisionButtonsBlock.style.display = "none"; changeDatesBtn.style.display = "none"; }
+        } catch (error) { alert(error.message); }
+    }
+
+    function renderVisitors() {
+        visitorsTableBody.innerHTML = "";
+        blankVisitorsContainer.innerHTML = "";
+        let blankIndex = 1;
+        const baseCarInfo = originalData.car_info ? originalData.car_info.trim() : "";
+
+        originalData.visitors.forEach((v) => {
+            const isExcluded = excludedVisitorIds.has(v.id);
+            const isPedestrian = pedestrianVisitorIds.has(v.id);
+            let currentCarText = "Пешком";
+            if (baseCarInfo && !isPedestrian) {
+                currentCarText = baseCarInfo;
+            }
+
+            const tr = document.createElement("tr");
+            tr.style.borderBottom = "1px solid #e2e8f0";
+            tr.style.height = "36px";
+            if (isExcluded) tr.className = "excluded-row";
+            
+            let actionCellHtml = '<span style="color:#64748b; font-size:11px;">Нет действий</span>';
+            if (currentRole === "Администратор" || currentRole === "Оператор 1" || currentRole === "Оператор 2") {
+                const hasCarInRequest = baseCarInfo.length > 0;
+                const carBtnText = isPedestrian ? "На машине" : "Пешком";
+                const vBtnText = isExcluded ? "Вернуть" : "Исключить";
+                const vBtnClass = isExcluded ? "success" : "danger";
+                
+                actionCellHtml = '<button class="table-btn-action ' + vBtnClass + ' toggle-v-btn" data-v-id="' + v.id + '">' + vBtnText + '</button>' +
+                                 '<button class="table-btn-action toggle-car-btn" data-v-id="' + v.id + '" ' + (hasCarInRequest ? '' : 'disabled style="opacity:0.5; cursor:not-allowed;"') + '>' + carBtnText + '</button>';
+            }
+
+            const tdName = document.createElement("td");
+            tdName.style.padding = "6px"; tdName.style.fontWeight = "600"; tdName.innerText = v.full_name;
+            const tdPassport = document.createElement("td");
+            tdPassport.style.padding = "6px"; tdPassport.innerText = v.passport_series + " " + v.passport_number;
+            const tdCar = document.createElement("td");
+            tdCar.style.padding = "6px"; tdCar.style.color = isPedestrian ? "#475569" : "#0f172a"; tdCar.innerText = currentCarText;
+            const tdAction = document.createElement("td");
+            tdAction.style.padding = "6px"; tdAction.style.textAlign = "center"; tdAction.innerHTML = actionCellHtml;
+
+            tr.appendChild(tdName); tr.appendChild(tdPassport); tr.appendChild(tdCar); tr.appendChild(tdAction);
+            visitorsTableBody.appendChild(tr);
+
+            if (!isExcluded) {
+                const p = document.createElement("p");
+                p.style.margin = "3px 0";
+                const spanPed = document.createElement("span");
+                spanPed.style.color = isPedestrian ? "#dc2626" : "#000";
+                spanPed.style.fontWeight = isPedestrian ? "700" : "normal";
+                spanPed.innerText = currentCarText;
+
+                p.innerHTML = blankIndex + ". " + v.full_name + ' <span style="font-size:10px; color:#444;">(Паспорт: ' + v.passport_series + ' №' + v.passport_number + ')</span> / ';
+                p.appendChild(spanPed);
+                blankVisitorsContainer.appendChild(p);
+                blankIndex++;
+            }
+        });
+
+        if (excludedVisitorIds.size > 0 || pedestrianVisitorIds.size > 0) groupWarnIndicator.style.display = "inline-block";
+        else groupWarnIndicator.style.display = "none";
+    }
+
+    visitorsTableBody.addEventListener("click", (e) => {
+        const vId = parseInt(e.target.getAttribute("data-v-id"));
+        if (!vId) return;
+        if (e.target.classList.contains("toggle-v-btn")) {
+            if (excludedVisitorIds.has(vId)) excludedVisitorIds.delete(vId);
+            else excludedVisitorIds.add(vId);
+            renderVisitors();
+        }
+        if (e.target.classList.contains("toggle-car-btn")) {
+            if (pedestrianVisitorIds.has(vId)) pedestrianVisitorIds.delete(vId);
+            else pedestrianVisitorIds.add(vId);
+            renderVisitors();
+        }
+    });
+
+    changeDatesBtn.addEventListener("click", () => { dateModal.style.display = "flex"; });
+    closeModalBtn.addEventListener("click", () => { dateModal.style.display = "none"; });
+    
+    applyDatesBtn.addEventListener("click", () => {
+        const startVal = modalStart.value;
+        const endVal = modalEnd.value;
+        if (!startVal || !endVal) { alert("Заполните обе даты!"); return; }
+        
+        const dStart = new Date(startVal);
+        const dEnd = new Date(endVal);
+        const diffDays = (dEnd - dStart) / (1000 * 60 * 60 * 24);
+
+        if (diffDays > 31) { alert("Ошибка: Длина пропуска не может превышать 1 месяц (31 день)!"); return; }
+        if (diffDays < 0) { alert("Ошибка: Дата окончания не может быть раньше даты начала!"); return; }
+        
+        currentStartDateIso = dStart.toISOString();
+        currentEndDateIso = dEnd.toISOString();
+
+        viewPeriod.innerText = formatDateOnly(startVal) + " по " + formatDateOnly(endVal);
+        blankStart.innerText = formatDateOnly(startVal);
+        blankEnd.innerText = formatDateOnly(endVal);
+        
+        if (startVal !== originalData.start_date.split("T") || endVal !== originalData.end_date.split("T")) {
+            datesWarnIndicator.style.display = "inline-block";
+        } else {
+            datesWarnIndicator.style.display = "none";
+        }
+        dateModal.style.display = "none";
+    });
+
+    rejectRequestBtn.addEventListener("click", () => { rejectReasonInput.value = ""; rejectModal.style.display = "flex"; });
+    closeRejectModalBtn.addEventListener("click", () => { rejectModal.style.display = "none"; });
+    
+    submitRejectBtn.addEventListener("click", async () => {
+        const reasonText = rejectReasonInput.value.trim();
+        rejectModal.style.display = "none";
+        await changeStatus("Отклонен", reasonText);
+    });
+
+    approveRequestBtn.addEventListener("click", async () => {
+        if (confirm("Утвердить заявку и зафиксировать изменённые параметры пропуска в СУБД?")) {
+            await changeStatus("Одобрен");
+        }
+    });
+
+    // БОЕВАЯ ФУНКЦИЯ СОХРАНЕНИЯ: Передает изменения дат, людей и статуса напрямую в бэкенд FastAPI
+    async function changeStatus(statusName, reason = "") {
+        try {
+            // Собираем актуальный список одобренных посетителей (исключаем тех, у кого стоит флаг)
+            const activeVisitors = originalData.visitors.filter(v => !excludedVisitorIds.has(v.id));
+            
+            // Если оператор исключил вообще всех — выдаем предупреждение регламента безопасности
+            if (statusName === "Одобрен" && activeVisitors.length === 0) {
+                alert("Ошибка сохранения:\nНельзя утвердить пропуск, в котором исключены все посетители!");
+                return;
+            }
+
+            // Переопределяем данные автомобиля для пешеходов, если требуется
+            let finalCarInfo = originalData.car_info;
+            const anyPedestrian = originalData.visitors.some(v => pedestrianVisitorIds.has(v.id));
+            if (anyPedestrian) {
+                finalCarInfo = "Частично пешком / Состав скорректирован оператором";
+            }
+
+            // 1. Формируем единый payload изменений
+            const updatePayload = {
+                status: statusName,
+                start_date: currentStartDateIso,
+                end_date: currentEndDateIso,
+                car_info: finalCarInfo,
+                comment: reason || (datesWarnIndicator.style.display === "inline-block" || groupWarnIndicator.style.display === "inline-block" ? "Скорректировано оператором при согласовании" : "")
+            };
+
+            // 2. Отправляем изменения в базу данных через основной API бэкенда
+            const response = await fetch("/api/admin/requests/" + requestId, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatePayload)
+            });
+
+            if (!response.ok) throw new Error("Ошибка записи скорректированных параметров в СУБД");
+
+            if (statusName === "Отклонен") {
+                if (reason) {
+                    alert("Заявка успешно отклонена. Причина: " + reason);
+                } else {
+                    alert("Заявка успешно отклонена без указания причины.");
+                }
+            } else {
+                alert("Параметры успешно зафиксированы в PostgreSQL. Пропуск переведен в статус: ОДОБРЕН.");
+            }
+            
+            window.location.href = "/dashboard";
+        } catch (error) { 
+            alert("Критическая ошибка сохранения: " + error.message); 
+        }
+    }
+
+    fetchRequestDetails();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление пропуска — Поморская Судоверфь</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        /* Сверхкомпактные B2B стили для минимизации скролла */
+        .hp-field {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        .form-container {
+            max-width: 950px;
+            margin: 8px auto;
+            padding: 14px 20px;
+        }
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #1e293b;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 2px;
+            margin-top: 12px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .form-group {
+            margin-bottom: 8px !important;
+        }
+        .form-group label {
+            font-size: 11px !important;
+            margin-bottom: 2px !important;
+        }
+        /* Изоляция геометрии ячеек сетки */
+        .grid-container {
+            margin-bottom: 8px !important;
+        }
+        .grid-container .form-group,
+        .form-container .form-group {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .form-group input, .form-group textarea {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 28px !important;
+            padding: 4px 8px !important;
+            font-size: 12px !important;
+            box-sizing: border-box !important;
+            display: block !important;
+        }
+        .form-group textarea {
+            height: 42px !important;
+        }
+        /* Стили оригинальной таблицы посетителей */
+        .visitor-table th {
+            padding: 6px 8px !important;
+            font-size: 11px !important;
+        }
+        .visitor-table input {
+            width: 100%;
+            height: 26px !important;
+            box-sizing: border-box;
+            padding: 4px 6px;
+            font-size: 12px;
+        }
+        .remove-btn {
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            user-select: none;
+        }
+        .remove-btn.disabled {
+            color: #94a3b8 !important;
+            cursor: not-allowed !important;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container form-container card">
+    <!-- Шапка с оригинальной аккуратной кнопкой-плашкой -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 18px; color: #1e3a8a;">⚓</span>
+            <h2 style="margin: 0; color: #1e293b; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Поморская Судоверфь</h2>
+        </div>
+        <a href="/login" style="padding: 4px 10px; font-size: 11px; text-decoration: none; background: #e2e8f0; color: #1e293b; border-radius: 4px; font-weight: 500; border: 1px solid #cbd5e1;">Вход в систему</a>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 12px;">
+        <h1 style="margin: 0 0 2px 0; color: #0f172a; font-size: 16px; font-weight: 600;">Заявка на оформление пропуска</h1>
+        <div style="font-size: 11px; color: #64748b;">Срок действия временного пропуска не может превышать 1 месяц. Все поля обязательны для заполнения.</div>
+    </div>
+
+    <form id="requestForm">
+        <div class="hp-field">
+            <input type="text" id="honeypot" name="honeypot" autocomplete="off">
+        </div>
+
+        <!-- 1. ДАННЫЕ ОРГАНИЗАЦИИ И ОБЪЕКТА -->
+        <div class="section-title">1. Данные организации и объекта</div>
+        
+        <div class="form-group">
+            <label for="company_name">Наименование организации / контрагента</label>
+            <input type="text" id="company_name" required placeholder="ООО Поморские Решения">
+        </div>
+
+        <div class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+                <label for="object_name">Наименование объекта / судна</label>
+                <input type="text" id="object_name" required placeholder="Судно 'Капитан Воронин'">
+            </div>
+            <div class="form-group">
+                <label for="work_purpose">Наименование проводимых работ</label>
+                <input type="text" id="work_purpose" required placeholder="Ремонт сварочного оборудования">
+            </div>
+        </div>
+
+        <!-- 2. КОНТАКТНОЕ ЛИЦО ДЛЯ УВЕДОМЛЕНИЙ -->
+        <div class="section-title">2. Контактное лицо для уведомлений</div>
+
+        <div class="grid-container" style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+                <label for="contact_name">ФИО ответственного лица</label>
+                <input type="text" id="contact_name" required placeholder="Иванов Иван Иванович">
+            </div>
+            <div class="form-group">
+                <label for="contact_role">Должность</label>
+                <input type="text" id="contact_role" required placeholder="Главный инженер">
+            </div>
+            <div class="form-group">
+                <label for="contact_phone">Телефон для связи</label>
+                <input type="text" id="contact_phone" required placeholder="+7 (999) 123-45-67">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="contact_email">Email (сюда придет готовый пропуск)</label>
+            <input type="email" id="contact_email" required placeholder="ivanov@domain.ru">
+        </div>
+
+        <!-- 3. СРОК ДЕЙСТВИЯ ПРОПУСКА -->
+        <div class="section-title">3. Срок действия пропуска</div>
+        
+        <div class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+                <label for="start_date">Дата начала действия</label>
+                <!-- Сохраняем дату и время начала -->
+                <input type="datetime-local" id="start_date" required>
+            </div>
+            <div class="form-group">
+                <label for="end_date">Дата окончания действия (макс. 1 месяц)</label>
+                <!-- Переводим строго на чистую дату без времени -->
+                <input type="date" id="end_date" required>
+            </div>
+        </div>
+
+        <!-- 4. СПИСОК ПОСЕТИТЕЛЕЙ И ТРАНСПОРТА -->
+        <div class="section-title">4. Список посетителей и транспорта</div>
+        
+        <div style="overflow-x: auto; margin-bottom: 8px;">
+            <table class="visitor-table" style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <thead>
+                    <tr style="background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; text-align: left;">
+                        <th style="padding: 6px 8px; width: 35%;">ФИО сотрудника</th>
+                        <th style="padding: 6px 8px; width: 25%;">Паспортные данные</th>
+                        <th style="padding: 6px 8px; width: 35%;">Транспорт (Марка, Госномер)</th>
+                        <th style="padding: 6px 8px; text-align: center; width: 5%;">Действие</th>
+                    </tr>
+                </thead>
+                <tbody id="visitorTableBody">
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 4px;"><input type="text" class="v-name" required placeholder="ФИО сотрудника"></td>
+                        <td style="padding: 4px;"><input type="text" class="v-passport" required placeholder="Серия, номер, кем и когда выдан"></td>
+                        <td style="padding: 4px;"><input type="text" class="v-car" placeholder="Если пешком — оставить пустым"></td>
+                        <td style="padding: 4px; text-align: center;"><span class="remove-btn disabled" title="Нельзя удалить единственного сотрудника">✖</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 14px; width: 100%;">
+            <!-- Кнопка растянута по рамке, цвет в точности как у Входа в систему (#e2e8f0), текст темный и четко видимый -->
+            <button type="button" id="addVisitorBtn" class="btn" style="padding: 6px 16px; font-size: 12px; width: 100%; box-sizing: border-box; background: #e2e8f0; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 4px; font-weight: 600; cursor: pointer; display: block; text-align: center; letter-spacing: 0.5px;">+ Добавить сотрудника в список</button>
+        </div>
+
+        <!-- Блок из двух обязательных чекбоксов Compact UI -->
+        <div style="margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #334155; padding-left: 2px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="confirm_data" required style="width: auto !important; height: auto !important; display: inline-block !important; margin: 0;">
+                <label for="confirm_data" style="cursor: pointer; user-select: none;">Я подтверждаю корректность введенных данных</label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="confirm_privacy" required style="width: auto !important; height: auto !important; display: inline-block !important; margin: 0;">
+                <label for="confirm_privacy" style="cursor: pointer; user-select: none;">Я даю согласие на обработку персональных данных</label>
+            </div>
+        </div>
+
+        <div style="width: 100%;">
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Отправить заявку на согласование</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const tableBody = document.getElementById("visitorTableBody");
+    const addVisitorBtn = document.getElementById("addVisitorBtn");
+    const requestForm = document.getElementById("requestForm");
+
+    addVisitorBtn.addEventListener("click", () => {
+        const row = document.createElement("tr");
+        row.style.borderBottom = "1px solid #e2e8f0";
+        row.innerHTML = `
+            <td style="padding: 4px;"><input type="text" class="v-name" required placeholder="ФИО сотрудника"></td>
+            <td style="padding: 4px;"><input type="text" class="v-passport" required placeholder="Серия, номер, кем и когда выдан"></td>
+            <td style="padding: 4px;"><input type="text" class="v-car" placeholder="Если пешком — оставить пустым"></td>
+            <td style="padding: 4px; text-align: center;"><span class="remove-btn">✖</span></td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    tableBody.addEventListener("click", (e) => {
+        if (e.target.classList.contains("remove-btn") && !e.target.classList.contains("disabled")) {
+            e.target.closest("tr").remove();
+        }
+    });
+
+    requestForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        if (document.getElementById("honeypot").value) {
+            return;
+        }
+
+        const startDate = new Date(document.getElementById("start_date").value);
+        const endDate = new Date(document.getElementById("end_date").value);
+        const daysDiff = (endDate - startDate) / (1000 * 60 * 60 * 24);
+
+        if (daysDiff > 31) {
+            alert("Ошибка регламента:\nСрок действия временного пропуска не может превышать 1 месяц.");
+            return;
+        }
+
+        const objectName = document.getElementById("object_name").value.trim();
+        const workPurpose = document.getElementById("work_purpose").value.trim();
+        const contactName = document.getElementById("contact_name").value.trim();
+        const contactRole = document.getElementById("contact_role").value.trim();
+        const contactPhone = document.getElementById("contact_phone").value.trim();
+        const contactEmail = document.getElementById("contact_email").value.trim();
+
+        const compositePurpose = `Объект: ${objectName} | Работы: ${workPurpose} | Ответственный: ${contactName} (${contactRole}), Тел: ${contactPhone}, Email: ${contactEmail}`;
+
+        const visitors = [];
+        let globalCarInfo = [];
+        const rows = tableBody.getElementsByTagName("tr");
+
+        for (let row of rows) {
+            const rawPassport = row.querySelector(".v-passport").value.trim();
+            const carVal = row.querySelector(".v-car").value.trim();
+            
+            if (carVal) globalCarInfo.push(carVal);
+
+            visitors.push({
+                full_name: row.querySelector(".v-name").value.trim(),
+                passport_series: "0000",
+                passport_number: "000000",
+                passport_issued_by: rawPassport,
+                passport_issued_at: new Date().toISOString()
+            });
+        }
+
+        const payload = {
+            company_name: document.getElementById("company_name").value.trim(),
+            purpose: compositePurpose,
+            car_info: globalCarInfo.length > 0 ? globalCarInfo.join("; ") : null,
+            start_date: document.getElementById("start_date").value,
+            end_date: document.getElementById("end_date").value + "T23:59:59",
+            visitors: visitors,
+            honeypot: null
+        };
+
+        try {
+            const response = await fetch("/api/public/request", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error("Ошибка валидации бэкенда");
+
+            alert(`Заявка успешно зарегистрирована в ИС Поморской Судоверфи!\nПрисвоен номер: №${data.id}`);
+            requestForm.reset();
+            while (tableBody.children.length > 1) {
+                tableBody.removeChild(tableBody.lastChild);
+            }
+        } catch (error) {
+            alert(`Ошибка подачи заявки:\n${error.message}`);
+        }
+    });
+});
+</script>
+
+</body>
+</html>

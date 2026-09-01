@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация — Поморская Судоверфь</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        /* Локальные стили центрирования карточки Compact UI */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 360px;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        .error-banner {
+            display: none;
+            background-color: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card login-card">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="margin: 0 0 4px 0; color: #1e293b; font-size: 18px;">Поморская Судоверфь</h2>
+        <span style="font-size: 13px; color: #64748b;">Система временных пропусков</span>
+    </div>
+
+    <!-- Баннер для вывода ошибок валидации -->
+    <div id="errorBanner" class="error-banner"></div>
+
+    <form id="loginForm">
+        <div class="form-group" style="margin-bottom: 14px;">
+            <label for="username" style="display: block; font-size: 13px; color: #475569; margin-bottom: 4px; font-weight: 500;">Логин</label>
+            <input type="text" id="username" name="username" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="password" style="display: block; font-size: 13px; color: #475569; margin-bottom: 4px; font-weight: 500;">Пароль</label>
+            <input type="password" id="password" name="password" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; font-size: 14px; font-weight: 500;">Войти в систему</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // На всякий случай очищаем старую сессию при входе на страницу авторизации
+    localStorage.clear();
+
+    const loginForm = document.getElementById("loginForm");
+    const errorBanner = document.getElementById("errorBanner");
+
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorBanner.style.display = "none";
+
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+
+        // Кодируем параметры в формат application/x-www-form-urlencoded для FastAPI OAuth2
+        const formData = new URLSearchParams();
+        formData.append("username", username);
+        formData.append("password", password);
+
+        try {
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                // Если бэкенд вернул ошибку (401, 403 и т.д.), выводим её текст
+                throw new Error(data.detail || "Ошибка авторизации");
+            }
+
+            // Записываем данные сессии в localStorage для управления визуальными переключателями ролей
+            localStorage.setItem("user_role", data.role);
+            localStorage.setItem("user_name", data.username);
+
+            // Перенаправляем авторизованного сотрудника в закрытый реестр заявок
+            window.location.href = "/dashboard";
+
+        } catch (error) {
+            errorBanner.innerText = error.message;
+            errorBanner.style.display = "block";
+        }
+    });
+});
+</script>
+
+</body>
+</html>

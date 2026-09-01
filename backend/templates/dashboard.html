@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления — Поморская Судоверфь</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .dashboard-container {
+            max-width: 1250px;
+            margin: 14px auto;
+            padding: 20px;
+        }
+        .status-badge-inline {
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap !important;
+            display: inline-block;
+        }
+        .status-border-pending { border: 1px solid #fcd34d; color: #b45309; background-color: #fffbeb; }
+        .status-border-approved { border: 1px solid #86efac; color: #166534; background-color: #f0fdf4; }
+        .status-border-rejected { border: 1px solid #fca5a5; color: #991b1b; background-color: #fef2f2; }
+        .status-border-expired { border: 1px solid #94a3b8; color: #475569; background-color: #f8fafc; }
+        
+        .filter-btn {
+            padding: 4px 10px;
+            font-size: 12px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        .filter-btn.active {
+            background: #cbd5e1;
+            font-weight: 600;
+        }
+        #registryTableBody tr {
+            cursor: pointer !important;
+        }
+        #registryTableBody tr:hover td,
+        #registryTableBody tr:hover {
+            background-color: #f1f5f9 !important;
+        }
+
+        /* Интеграция контейнера и адаптивного крестика очистки */
+        .search-wrapper {
+            position: relative !important;
+            width: 100% !important;
+            margin-bottom: 12px;
+        }
+        .clear-search-btn {
+            position: absolute !important;
+            right: 10px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            user-select: none;
+            display: none; /* Управляется динамически через JS */
+            transition: color 0.1s ease;
+        }
+        .clear-search-btn:hover {
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container dashboard-container card">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px; color: #1e3a8a;">⚓</span>
+            <h2 style="margin: 0; color: #1e293b; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Система пропусков | Admin-панель</h2>
+        </div>
+        <div style="font-size: 13px; color: #334155;">
+            Вы зашли как: <strong id="userInfoBlock" style="color: #0f172a;">Загрузка...</strong>
+            <a href="#" id="logoutBtn" style="color: #2563eb; margin-left: 8px; text-decoration: underline;">Выйти</a>
+        </div>
+    </div>
+
+    <!-- Поисковый блок со скрытым встроенным крестиком -->
+    <div class="search-wrapper">
+        <input type="text" id="searchInput" placeholder="Введите фамилию гостя, город или организацию" style="width: 100% !important; max-width: 100% !important; height: 32px; padding: 4px 28px 4px 12px; font-size: 13px; box-sizing: border-box; display: block;">
+        <span id="clearSearchBtn" class="clear-search-btn" title="Очистить поиск">✖</span>
+    </div>
+
+    <div style="margin-bottom: 14px; display: flex; align-items: center; gap: 4px;">
+        <span style="font-size: 12px; color: #475569; margin-right: 6px;">Статус заявки:</span>
+        <button class="filter-btn active" data-status="all">Все</button>
+        <button class="filter-btn" data-status="На рассмотрении">На согласовании</button>
+        <button class="filter-btn" data-status="Одобрен">Одобрены</button>
+        <button class="filter-btn" data-status="Отклонен">Отклонены</button>
+    </div>
+
+    <div style="overflow-x: auto; margin-bottom: 12px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+            <thead>
+                <tr style="background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; color: #475569; height: 38px;">
+                    <th style="padding: 10px; width: 11%; text-align: center;">Дата подачи</th>
+                    <th style="padding: 10px; width: 23%;">Организация</th>
+                    <th style="padding: 10px; width: 20%;">Объект / Судно</th>
+                    <th style="padding: 10px; width: 20%;">ФИО ответственного</th>
+                    <th style="padding: 10px; width: 14%; text-align: center;">Срок действия</th>
+                    <th style="padding: 10px; width: 12%; text-align: center;">Статус</th>
+                </tr>
+            </thead>
+            <tbody id="registryTableBody">
+                <!-- Данные подгружаются через JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #475569;">
+        <button id="prevPageBtn" class="filter-btn" style="margin: 0;">← Назад</button>
+        <span id="paginationInfo">Страница 1 из 1 (Показано 0 заявок)</span>
+        <button id="nextPageBtn" class="filter-btn" style="margin: 0;">Вперед →</button>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const currentRole = localStorage.getItem("user_role");
+    const currentUsername = localStorage.getItem("user_name");
+    
+    const tableBody = document.getElementById("registryTableBody");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const searchInput = document.getElementById("searchInput");
+    const clearSearchBtn = document.getElementById("clearSearchBtn");
+    const filterButtons = document.querySelectorAll(".filter-btn[data-status]");
+    
+    const paginationInfo = document.getElementById("paginationInfo");
+    const prevPageBtn = document.getElementById("prevPageBtn");
+    const nextPageBtn = document.getElementById("nextPageBtn");
+
+    let allRequests = [];
+    let activeFilter = "all";
+    let currentPage = 1;
+    const itemsPerPage = 15;
+
+    if (!currentRole || !currentUsername) {
+        window.location.href = "/login";
+        return;
+    }
+
+    document.getElementById("userInfoBlock").innerText = `${currentRole.toUpperCase()} (${currentUsername})`;
+
+    function formatDateOnly(isoString) {
+        if (!isoString) return "";
+        const date = new Date(isoString);
+        return date.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+    }
+
+    function formatPeriod(startIso, endIso) {
+        if (!startIso || !endIso) return "";
+        const start = new Date(startIso);
+        const end = new Date(endIso);
+        return `${start.toLocaleDateString("ru-RU", {day:"2-digit", month:"2-digit"})} — ${end.toLocaleDateString("ru-RU", {day:"2-digit", month:"2-digit"})}`;
+    }
+
+    // ВАШ СТАБИЛЬНЫЙ ОРИГИНАЛЬНЫЙ ПАРСЕР ПОЛЕЙ
+    function parseCompositePurpose(purposeStr) {
+        const result = { object: "—", manager: "—" };
+        if (!purposeStr) return result;
+
+        if (purposeStr.includes("Объект:") && purposeStr.includes("Ответственный:")) {
+            try {
+                const objMatch = purposeStr.match(/Объект:\s*([^|]+)/);
+                if (objMatch) result.object = objMatch[1].trim();
+
+                const managerMatch = purposeStr.match(/Ответственный:\s*([^(|]+)/);
+                if (managerMatch) {
+                    const cleanManager = managerMatch[1].trim();
+                    const fullFio = cleanManager.split(/\s+/);
+                    if (fullFio.length >= 3) {
+                        result.manager = `${fullFio[0]} ${fullFio[1][0]}. ${fullFio[2][0]}.`;
+                    } else {
+                        result.manager = cleanManager;
+                    }
+                }
+            } catch (e) {
+                result.object = "Временный допуск";
+                result.manager = "Контрагент";
+            }
+        } else {
+            result.object = "Территория Верфи";
+            result.manager = purposeStr.length > 20 ? purposeStr.substring(0, 17) + "..." : purposeStr;
+        }
+        return result;
+    }
+
+    async function loadDashboardData() {
+        try {
+            const response = await fetch("/api/admin/requests");
+            if (response.status === 401 || response.status === 403) {
+                window.location.href = "/login";
+                return;
+            }
+            if (!response.ok) throw new Error("Ошибка получения реестра");
+
+            const data = await response.json();
+            allRequests = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            renderTable();
+        } catch (error) {
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">${error.message}</td></tr>`;
+        }
+    }
+
+    function renderTable() {
+        tableBody.innerHTML = "";
+        const searchQuery = searchInput.value.trim().toLowerCase();
+        const now = new Date();
+
+        // Динамически управляем видимостью крестика очистки
+        if (searchQuery.length > 0) {
+            clearSearchBtn.style.display = "block";
+        } else {
+            clearSearchBtn.style.display = "none";
+        }
+
+        let filtered = allRequests.filter(req => {
+            if (activeFilter === "all") return true;
+            return req.status === activeFilter;
+        });
+
+        if (searchQuery) {
+            filtered = filtered.filter(req => {
+                const idMatch = req.id.toString() == searchQuery;
+                const companyMatch = req.company_name.toLowerCase().includes(searchQuery);
+                const purposeMatch = req.purpose.toLowerCase().includes(searchQuery);
+                const visitorsMatch = req.visitors.some(v => v.full_name.toLowerCase().includes(searchQuery));
+                return idMatch || companyMatch || purposeMatch || visitorsMatch;
+            });
+        }
+
+        const totalItems = filtered.length;
+        const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        if (totalItems === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#64748b;">Заявки не найдены.</td></tr>`;
+            paginationInfo.innerText = `Страница 1 из 1 (Показано 0 заявок)`;
+            prevPageBtn.disabled = true;
+            nextPageBtn.disabled = true;
+            return;
+        }
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+        const paginatedItems = filtered.slice(startIndex, endIndex);
+
+        paginatedItems.forEach(req => {
+            const row = document.createElement("tr");
+            row.style.borderBottom = "1px solid #e2e8f0";
+            row.style.height = "38px";
+            
+            row.addEventListener("click", () => {
+                window.location.href = `/view/${req.id}`;
+            });
+
+            const parsed = parseCompositePurpose(req.purpose);
+            const isExpired = new Date(req.end_date) < now;
+
+            let statusBadge = `<span class="status-badge-inline status-border-pending">На согласовании</span>`;
+            
+            if (isExpired) {
+                statusBadge = `<span class="status-badge-inline status-border-expired">Истек</span>`;
+            } else if (req.status === "Одобрен") {
+                statusBadge = `<span class="status-badge-inline status-border-approved">Одобрен</span>`;
+            } else if (req.status === "Отклонен") {
+                statusBadge = `<span class="status-badge-inline status-border-rejected">Отклонен</span>`;
+            }
+
+            row.innerHTML = `
+                <td style="padding:10px; text-align: center; color:#475569;">${formatDateOnly(req.created_at)}</td>
+                <td style="padding:10px; font-weight:700; color:#1e293b;">ООО "${req.company_name}"</td>
+                <td style="padding:10px; color:#334155;">${parsed.object}</td>
+                <td style="padding:10px; color:#334155;">${parsed.manager}</td>
+                <td style="padding:10px; text-align: center; color:#475569; font-weight:500;">${formatPeriod(req.start_date, req.end_date)}</td>
+                <td style="padding:10px; text-align:center;">${statusBadge}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        paginationInfo.innerText = `Страница ${currentPage} из ${totalPages} (Показано ${endIndex - startIndex} из ${totalItems} заявок)`;
+        
+        prevPageBtn.disabled = (currentPage === 1);
+        nextPageBtn.disabled = (currentPage === totalPages);
+    }
+
+    // ТРИГГЕР ЛОГИКИ КНОПКИ ОЧИСТКИ «✖»
+    clearSearchBtn.addEventListener("click", () => {
+        searchInput.value = ""; // Мгновенно стираем текст
+        currentPage = 1;        // Сбрасываем на 1-ю страницу
+        renderTable();          // Перерисовываем таблицу
+        searchInput.focus();    // Сохраняем фокус в инпуте для удобства ввода
+    });
+
+    prevPageBtn.addEventListener("click", () => {
+        if (currentPage > 1) { currentPage--; renderTable(); }
+    });
+
+    nextPageBtn.addEventListener("click", () => {
+        let filteredCount = allRequests.filter(req => activeFilter === "all" || req.status === activeFilter).length;
+        const totalPages = Math.ceil(filteredCount / itemsPerPage) || 1;
+        if (currentPage < totalPages) { currentPage++; renderTable(); }
+    });
+
+    searchInput.addEventListener("input", () => { currentPage = 1; renderTable(); });
+
+    filterButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            filterButtons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeFilter = btn.getAttribute("data-status");
+            currentPage = 1;
+            renderTable();
+        });
+    });
+
+    logoutBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.clear();
+        window.location.href = "/login";
+    });
+
+    loadDashboardData();
+});
+</script>
+</body>
+</html>

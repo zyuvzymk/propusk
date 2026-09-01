@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: pass_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - pass_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: pass_redis
+    restart: always
+    networks:
+      - pass_network
+
+  backend:
+    build: ./backend
+    container_name: pass_backend
+    restart: always
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+      - ./.env:/opt/pass-system/.env:ro
+    depends_on:
+      - db
+      - redis
+    networks:
+      - pass_network
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: pass_nginx
+    restart: always
+    ports:
+      - "${EXTERNAL_PORT}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Жестко пробрасываем папку со стилями в Nginx
+      - ./backend/static:/app/static:ro
+    depends_on:
+      - backend
+    networks:
+      - pass_network
+
+volumes:
+  postgres_data:
+
+networks:
+  pass_network:
+    driver: bridge
