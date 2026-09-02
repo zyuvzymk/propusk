@@ -65,28 +65,26 @@
         </div>
     </div>
 
+    <!-- ПРЕДПРОСМОТР (чистый, без подписей) -->
     <div class="preview-holder">
         <div class="a4-sheet" id="blankSheet">
             <div class="watermark">ПОМОРСКАЯ СУДОВЕРФЬ</div>
-            <div style="text-align:center; font-size:14px; font-weight:700; margin-bottom:10px;">ООО "ПОМОРСКАЯ СУДОВЕРФЬ"</div>
-            <div style="text-align:center; font-size:12px; font-weight:600; border-bottom:1px solid #000; padding-bottom:6px; margin-bottom:12px;">БЛАНК ПРОПУСКА РЕЖИМНОГО ОБЪЕКТА</div>
-            <div style="font-size:13px; margin-bottom:10px;"><strong>ВРЕМЕННЫЙ ПРОПУСК № <span id="blankId">...</span></strong></div>
-            <div style="font-size:12px; margin-bottom:4px;"><strong>Организация:</strong> <span id="blankCompany">—</span></div>
-            <div style="font-size:12px; margin-bottom:4px;"><strong>Объект визита:</strong> <span id="blankObject">—</span></div>
-            <div style="font-size:12px; margin-bottom:4px;"><strong>Срок действия:</strong> <span id="blankPeriod">—</span></div>
-            <span id="datesWarnIndicatorPreview" class="blank-warn-indicator" style="display:none;">Даты скорректированы</span>
-            <div style="font-size:12px; margin-top:10px; border-top:1px solid #ccc; padding-top:8px;"><strong>Список лиц, допущенных на территорию:</strong></div>
-            <span id="groupWarnIndicator" class="blank-warn-indicator" style="display:none;">Состав группы изменен!</span>
-            <ul id="blankVisitorsList" style="font-size:11px; padding-left:18px; margin:6px 0;"></ul>
-            <div style="margin-top:16px; font-size:11px; border-top:1px solid #ccc; padding-top:8px;">
-                <div><strong>Согласовано:</strong> Администрация судоверфи</div>
-                <div style="margin-top:4px;"><strong>Подпись/Печать:</strong> _________________</div>
+            <div style="text-align: center; font-size: 11px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase;">
+                ООО "ПОМОРСКАЯ СУДОВЕРФЬ"<br>
+                <span style="font-size: 10px; font-weight: normal;">ПРЕДПРОСМОТР ЗАЯВКИ</span>
+            </div>
+            <div style="font-size: 11px; line-height: 1.6;">
+                <p style="margin: 4px 0;"><strong>Организация:</strong> ООО "<span id="blankCompany">...</span>"</p>
+                <p style="margin: 4px 0;"><strong>Объект визита:</strong> <span id="blankObject">...</span></p>
+                <p style="margin: 4px 0;"><strong>Срок действия:</strong> <span id="blankPeriod">...</span></p>
+                <p style="margin: 12px 0 6px 0;"><strong>Список лиц, допущенных на территорию:</strong></p>
+                <div id="blankVisitorsContainer" style="padding-left: 4px;"></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Модалки -->
+<!-- МОДАЛКИ -->
 <div class="b2b-modal" id="datesModal">
     <div class="modal-content">
         <h3 style="font-size:14px; margin:0 0 10px 0;">Изменить даты</h3>

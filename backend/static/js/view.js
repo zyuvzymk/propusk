@@ -24,6 +24,12 @@ const rejectReason = document.getElementById("rejectReason");
 const closeRejectModalBtn = document.getElementById("closeRejectModalBtn");
 const submitRejectBtn = document.getElementById("submitRejectBtn");
 
+// Элементы нового чистого предпросмотра
+const blankCompany = document.getElementById("blankCompany");
+const blankObject = document.getElementById("blankObject");
+const blankPeriod = document.getElementById("blankPeriod");
+const blankVisitorsContainer = document.getElementById("blankVisitorsContainer");
+
 let originalData = null;
 let excludedVisitorIds = new Set();
 let pedestrianVisitorIds = new Set();
@@ -126,14 +132,14 @@ async function fetchRequestDetails() {
             returnToPendingBtn.classList.add("hidden");
         }
 
-        document.getElementById("blankId").innerText = originalData.id;
-        document.getElementById("blankCompany").innerText = `ООО "${originalData.company_name}"`;
-        document.getElementById("blankObject").innerText = parsed.object;
-        document.getElementById("blankPeriod").innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
+        // Заполняем чистый предпросмотр
+        blankCompany.innerText = originalData.company_name;
+        blankObject.innerText = parsed.object;
+        blankPeriod.innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
+        renderVisitorsPreview(originalData.visitors);
 
-        if (originalData.dates_changed) {
-            document.getElementById("datesWarnIndicatorPreview").style.display = "inline-block";
-        }
+        // Индикаторы пока не используются
+        // if (originalData.dates_changed) { ... }
 
         renderVisitorsTable(originalData.visitors);
         blockInteractiveElements();
@@ -142,10 +148,27 @@ async function fetchRequestDetails() {
     }
 }
 
+function renderVisitorsPreview(visitors) {
+    if (!visitors || visitors.length === 0) {
+        blankVisitorsContainer.innerHTML = "<p style='margin: 2px 0; color: #94a3b8;'>Нет посетителей</p>";
+        return;
+    }
+    let html = "";
+    visitors.forEach(v => {
+        if (excludedVisitorIds.has(v.id)) return;
+        const isPedestrian = pedestrianVisitorIds.has(v.id);
+        let transport = isPedestrian ? "ПЕШКОМ" : (originalData.car_info || "—");
+        if (isPedestrian) {
+            transport = `<span style="color: #dc2626; font-weight: 700;">ПЕШКОМ</span>`;
+        }
+        html += `<p style="margin: 2px 0; font-size: 11px;">${v.full_name} (Паспорт: ${v.passport_series || ""} ${v.passport_number || ""}) / ${transport}</p>`;
+    });
+    blankVisitorsContainer.innerHTML = html;
+}
+
 function renderVisitorsTable(visitors) {
     if (!visitors || visitors.length === 0) {
         visitorsTableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#94a3b8;'>Нет посетителей</td></tr>";
-        updateBlankVisitorsList();
         return;
     }
     let html = "";
@@ -173,35 +196,6 @@ function renderVisitorsTable(visitors) {
         </tr>`;
     });
     visitorsTableBody.innerHTML = html;
-    updateBlankVisitorsList();
-}
-
-function updateBlankVisitorsList() {
-    const list = document.getElementById("blankVisitorsList");
-    const groupWarn = document.getElementById("groupWarnIndicator");
-    if (!originalData || !originalData.visitors) { list.innerHTML = ""; return; }
-    let items = [];
-    let allPedestrian = true;
-    originalData.visitors.forEach(v => {
-        if (excludedVisitorIds.has(v.id)) return;
-        let transport = pedestrianVisitorIds.has(v.id) ? "ПЕШКОМ" : (originalData.car_info || "—");
-        if (!pedestrianVisitorIds.has(v.id)) allPedestrian = false;
-        let transportDisplay = transport;
-        if (transport === "ПЕШКОМ") {
-            transportDisplay = `<span style="color: #dc2626; font-weight: 700;">ПЕШКОМ</span>`;
-        }
-        items.push(`${v.full_name} (Паспорт: ${v.passport_series || ""} ${v.passport_number || ""}) / ${transportDisplay}`);
-    });
-    list.innerHTML = items.map(i => `<li>${i}</li>`).join("");
-
-    if (excludedVisitorIds.size > 0 || pedestrianVisitorIds.size > 0) {
-        groupWarn.style.display = "inline-block";
-    } else {
-        groupWarn.style.display = "none";
-    }
-    if (allPedestrian && originalData.visitors.length > 0) {
-        document.querySelectorAll("#visitorsTableBody td:nth-child(3)").forEach(td => td.innerText = "ПЕШКОМ");
-    }
 }
 
 function blockInteractiveElements() {
@@ -239,6 +233,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 excludedVisitorIds.add(vId);
             }
             renderVisitorsTable(originalData.visitors);
+            renderVisitorsPreview(originalData.visitors);
         }
         if (e.target.classList.contains("toggle-car-btn")) {
             const vId = parseInt(e.target.dataset.vId);
@@ -248,6 +243,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 pedestrianVisitorIds.add(vId);
             }
             renderVisitorsTable(originalData.visitors);
+            renderVisitorsPreview(originalData.visitors);
         }
     });
 
@@ -268,9 +264,8 @@ document.addEventListener("DOMContentLoaded", function() {
             currentStartDateIso = start;
             currentEndDateIso = end;
             viewPeriod.innerText = `${formatDateOnly(start)} по ${formatDateOnly(end)}`;
-            document.getElementById("blankPeriod").innerText = `${formatDateOnly(start)} по ${formatDateOnly(end)}`;
+            blankPeriod.innerText = `${formatDateOnly(start)} по ${formatDateOnly(end)}`;
             datesModal.style.display = "none";
-            updateBlankVisitorsList();
             alert("Даты обновлены. Не забудьте сохранить изменения через 'Одобрить'.");
         } else {
             alert("Некорректный диапазон дат.");
