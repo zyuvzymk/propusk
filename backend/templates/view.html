@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/styles.css">
     <style>
         .action-cell-inner { display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: nowrap; }
+        .action-cell-inner { display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: nowrap; }
         .view-container { max-width: 1280px; margin: 10px auto; padding: 0 15px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; }
         .info-panel { background: #ffffff; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .b2b-section-card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; background-color: #ffffff; }
@@ -300,10 +301,10 @@ function renderVisitorsTable(visitors) {
             <td>${v.passport_series || ""} ${v.passport_number || ""}</td>
             <td>${transportDisplay}</td>
             <td style="white-space:nowrap; text-align:center; vertical-align:middle;">
-                <div style="display:flex; justify-content:center; align-items:center; gap:4px; flex-wrap:nowrap;">
-                    <button class="table-btn-action ${vBtnClass} toggle-v-btn" style="display:inline-block; vertical-align:middle; margin:0 2px;" data-v-id="${v.id}">${vBtnText}</button>
-                    <button class="table-btn-action toggle-car-btn" style="display:inline-block; vertical-align:middle; margin:0 2px;" data-v-id="${v.id}" ${isCarDisabled}>${carBtnText}</button>
-                </div>
+                <span style="display:inline-flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; flex-wrap:nowrap;">
+                    <button class="table-btn-action ${vBtnClass} toggle-v-btn" style="display:inline-block; margin:0 2px;" data-v-id="${v.id}">${vBtnText}</button>
+                    <button class="table-btn-action toggle-car-btn" style="display:inline-block; margin:0 2px;" data-v-id="${v.id}" ${isCarDisabled}>${carBtnText}</button>
+                </span>
             </td>
         </tr>`;
     });
