@@ -81,7 +81,8 @@ def render_dashboard(request: Request):
 
 @app.get("/view/{request_id}", response_class=HTMLResponse)
 def render_view(request_id: int, request: Request):
-    return templates.TemplateResponse("view.html", {"request": request, "request_id": request_id})
+    user = get_current_user(request, db) if hasattr(request, "state") and hasattr(request.state, "user") else None
+    return templates.TemplateResponse("view.html", {"request": request, "request_id": request_id, "current_user": user})
 
 @app.get("/api/health")
 def health_check():

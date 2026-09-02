@@ -171,3 +171,8 @@ def logout(response: Response):
     """Сброс сессии авторизации и очистка Cookie"""
     response.delete_cookie("access_token")
     return {"status": "session cleared"}
+
+@router.get("/me")
+def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Возвращает информацию о текущем пользователе (роль, логин)"""
+    return {"username": current_user.username, "role": current_user.role}
