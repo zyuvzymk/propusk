@@ -116,6 +116,11 @@
             <div class="data-row"><div class="data-label">ФИО ответственного:</div><div id="viewManager" class="data-value">...</div></div>
             <div class="data-row"><div class="data-label">Должность:</div><div id="viewRole" class="data-value">...</div></div>
             <div class="data-row"><div class="data-label">Телефон / Email:</div><div id="viewContacts" class="data-value">...</div></div>
+        <!-- АУДИТ -->
+        <div class="b2b-section-card" id="auditSection">
+            <div class="section-header">Аудит</div>
+            <div id="viewAudit" class="data-value" style="font-size:13px; color:#0f172a;">—</div>
+        </div>
         </div>
 
         <!-- 3. СРОКИ ВИЗИТА -->
@@ -244,6 +249,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const viewRole = document.getElementById("viewRole");
     const viewContacts = document.getElementById("viewContacts");
     const viewPeriod = document.getElementById("viewPeriod");
+    const viewAudit = document.getElementById("viewAudit");
+    const auditSection = document.getElementById("auditSection");
     const visitorsTableBody = document.getElementById("visitorsTableBody");
     const decisionButtonsBlock = document.getElementById("decisionButtonsBlock");
     const approveRequestBtn = document.getElementById("approveRequestBtn");
@@ -273,6 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let originalData = null;
     let excludedVisitorIds = new Set();
     let pedestrianVisitorIds = new Set();
+    let auditInfo = null;
     
     // Переменные для хранения скорректированных дат в формате ISO
     let currentStartDateIso = null;
@@ -286,6 +294,14 @@ document.addEventListener("DOMContentLoaded", () => {
     function parseCompositePurpose(purposeStr) {
         const result = { object: "—", work: "—", manager: "—", role: "—", phone: "—", email: "—", audit: "" };
         if (!purposeStr) return result;
+    function renderAudit() {
+        viewAudit.innerText = auditInfo || "—";
+    }
+        const auditMatch = purposeStr.match(/\[Обработал:\s*([^\]]+)\]/);
+        if (auditMatch) {
+            auditInfo = auditMatch[1].trim();
+            purposeStr = purposeStr.replace(auditMatch[0], "").trim();
+        }
         try {
             if (purposeStr.includes("Объект:") && purposeStr.includes("Работы:")) {
                 const parts = purposeStr.split("|");
@@ -323,6 +339,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (e) { result.object = "Временный допуск"; }
         
         return result;
+    function renderAudit() {
+        viewAudit.innerText = auditInfo || "—";
+    }
     }
 
     function blockInteractiveElements() {
@@ -363,6 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
             viewRole.innerText = parsed.role;
             viewContacts.innerText = `${parsed.phone !== "—" ? parsed.phone : "—"} / ${parsed.email !== "—" ? parsed.email : "—"}`;
             viewPeriod.innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
+            renderAudit();
 
             blankId.innerText = originalData.id;
             blankCompany.innerText = originalData.company_name;
@@ -473,6 +493,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentEndDateIso = dEnd.toISOString();
 
         viewPeriod.innerText = formatDateOnly(startVal) + " по " + formatDateOnly(endVal);
+            renderAudit();
         blankStart.innerText = formatDateOnly(startVal);
         blankEnd.innerText = formatDateOnly(endVal);
         
