@@ -330,6 +330,24 @@ document.addEventListener("DOMContentLoaded", () => {
         return result;
     }
 
+    function blockInteractiveElements() {
+        const userRole = '{{ current_user.role }}';
+        const requestStatus = '{{ request.status }}';
+        if (userRole !== 'Администратор' && requestStatus !== 'На рассмотрении') {
+            const interactiveSelectors = [
+                '#changeDatesBtn',
+                '#approveRequestBtn',
+                '#rejectRequestBtn',
+                '.toggle-v-btn',
+                '.toggle-car-btn'
+            ];
+            document.querySelectorAll(interactiveSelectors.join(',')).forEach(function(el) {
+                el.disabled = true;
+                el.title = 'Изменение запрещено: заявка обработана';
+            });
+        }
+    }
+
     async function fetchRequestDetails() {
         try {
             const response = await fetch("/api/admin/requests/" + requestId);
