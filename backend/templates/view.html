@@ -284,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function parseCompositePurpose(purposeStr) {
-        const result = { object: "—", work: "—", manager: "—", role: "—", phone: "—", email: "—" };
+        const result = { object: "—", work: "—", manager: "—", role: "—", phone: "—", email: "—", audit: "" };
         if (!purposeStr) return result;
         try {
             if (purposeStr.includes("Объект:") && purposeStr.includes("Работы:")) {
@@ -322,11 +322,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } catch (e) { result.object = "Временный допуск"; }
         
-        if (result.manager && result.manager !== "—") {
-            const arr = result.manager.split(/\s+/);
-            if (arr.length >= 3) result.manager = arr[0] + " " + arr[1][0] + ". " + arr[2][0] + ".";
-            else if (arr.length === 2) result.manager = arr[0] + " " + arr[1][0] + ".";
-        }
         return result;
     }
 
@@ -364,6 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
             viewObject.innerText = parsed.object;
             viewWork.innerText = parsed.work;
             viewManager.innerText = parsed.manager;
+            document.getElementById("viewAudit").innerText = parsed.audit || "—";
             viewRole.innerText = parsed.role;
             viewContacts.innerText = `${parsed.phone !== "—" ? parsed.phone : "—"} / ${parsed.email !== "—" ? parsed.email : "—"}`;
             viewPeriod.innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
