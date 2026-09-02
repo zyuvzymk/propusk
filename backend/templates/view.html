@@ -6,13 +6,6 @@
     <title>Просмотр заявки — Поморская Судоверфь</title>
     <link rel="stylesheet" href="/static/styles.css">
     <style>
-        .blank-warn-indicator {
-            background-color: #fee2e2; border: 2px dashed #f87171; color: #991b1b;
-            font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px;
-            margin-left: 6px; display: none; text-transform: uppercase;
-        }
-        .action-cell-inner { display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: nowrap; }
-        .action-cell-inner { display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: nowrap; }
         .view-container { max-width: 1280px; margin: 10px auto; padding: 0 15px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; }
         .info-panel { background: #ffffff; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .b2b-section-card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; background-color: #ffffff; }
@@ -39,15 +32,16 @@
         .flex-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
         .hidden { display: none; }
         .audit-entry { font-size: 12px; color: #1e293b; margin-bottom: 4px; padding: 4px 8px; background: #f1f5f9; border-radius: 4px; }
+        .blank-warn-indicator { background-color: #fee2e2; border: 2px dashed #f87171; color: #991b1b; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-left: 6px; display: none; text-transform: uppercase; }
 
-        /* ФИКСИРОВАННАЯ ТАБЛИЦА — НЕ ПРЫГАЕТ */
         table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
         th, td { padding: 6px 4px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: middle; overflow: hidden; }
         th { background: #f8fafc; font-weight: 600; color: #475569; }
         .col-name { width: 30%; }
         .col-passport { width: 25%; }
         .col-transport { width: 25%; }
-        .col-action { width: 20%; white-space: nowrap; }
+        .col-action { width: 20%; }
+        .action-cell-inner { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; flex-wrap: nowrap; }
     </style>
 </head>
 <body>
@@ -72,7 +66,7 @@
             <div class="data-row"><span class="data-label">Телефон / Email:</span><span class="data-value" id="viewContacts">—</span></div>
         </div>
 
-        <!-- АУДИТ -->
+        <!-- АУДИТ (только для администратора) -->
         <div class="b2b-section-card hidden" id="auditSection">
             <div class="section-header">Аудит</div>
             <div id="viewAuditContainer"></div>
@@ -83,6 +77,7 @@
             <div class="period-row">
                 <span class="data-label">Период действия:</span>
                 <span class="data-value" id="viewPeriod">—</span>
+                <span id="datesWarnIndicator" class="blank-warn-indicator" style="display:none;">Даты скорректированы</span>
                 <button id="changeDatesBtn" class="table-btn-action" style="margin-left: 4px;">Изменить даты</button>
             </div>
         </div>
@@ -117,9 +112,9 @@
             <div style="font-size:12px; margin-bottom:4px;"><strong>Организация:</strong> <span id="blankCompany">—</span></div>
             <div style="font-size:12px; margin-bottom:4px;"><strong>Объект визита:</strong> <span id="blankObject">—</span></div>
             <div style="font-size:12px; margin-bottom:4px;"><strong>Срок действия:</strong> <span id="blankPeriod">—</span></div>
-            <span id="datesWarnIndicator" class="blank-warn-indicator" style="display:none;">Даты скорректированы</span>
+            <span id="datesWarnIndicatorPreview" class="blank-warn-indicator" style="display:none;">Даты скорректированы</span>
             <div style="font-size:12px; margin-top:10px; border-top:1px solid #ccc; padding-top:8px;"><strong>Список лиц, допущенных на территорию:</strong></div>
-            <span id="groupWarnIndicator" class="blank-warn-indicator">Состав группы изменен!</span>
+            <span id="groupWarnIndicator" class="blank-warn-indicator" style="display:none;">Состав группы изменен!</span>
             <ul id="blankVisitorsList" style="font-size:11px; padding-left:18px; margin:6px 0;"></ul>
             <div style="margin-top:16px; font-size:11px; border-top:1px solid #ccc; padding-top:8px;">
                 <div><strong>Согласовано:</strong> Администрация судоверфи</div>
@@ -251,6 +246,14 @@ async function fetchRequestDetails() {
         if (response.status === 401 || response.status === 403) { window.location.href = "/login"; return; }
         if (!response.ok) throw new Error("Ошибка загрузки заявки");
         originalData = await response.json();
+        console.log("dates_changed:", originalData.dates_changed);
+
+        // Восстанавливаем флаги пешеходов и исключённых из БД
+        originalData.visitors.forEach(v => {
+            if (v.is_pedestrian) pedestrianVisitorIds.add(v.id);
+            if (v.is_excluded) excludedVisitorIds.add(v.id);
+        });
+
         const parsed = parseCompositePurpose(originalData.purpose);
         currentStartDateIso = originalData.start_date;
         currentEndDateIso = originalData.end_date;
@@ -263,6 +266,7 @@ async function fetchRequestDetails() {
         viewContacts.innerText = `${parsed.phone !== "—" ? parsed.phone : "—"} / ${parsed.email !== "—" ? parsed.email : "—"}`;
         viewPeriod.innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
 
+        // АУДИТ
         if (userRole === "Администратор" && auditInfo) {
             auditSection.classList.remove("hidden");
             viewAuditContainer.innerHTML = `<div class="audit-entry">${auditInfo}</div>`;
@@ -270,6 +274,7 @@ async function fetchRequestDetails() {
             auditSection.classList.add("hidden");
         }
 
+        // Кнопка возврата
         if (userRole === "Администратор" && (originalData.status === "Одобрен" || originalData.status === "Отклонен")) {
             returnToPendingBtn.classList.remove("hidden");
         } else {
@@ -281,6 +286,15 @@ async function fetchRequestDetails() {
         document.getElementById("blankObject").innerText = parsed.object;
         document.getElementById("blankPeriod").innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
 
+        // ИНДИКАТОР ДАТ ИЗ БД
+        if (originalData.dates_changed) {
+            document.getElementById("datesWarnIndicator").style.display = "inline-block";
+            document.getElementById("datesWarnIndicatorPreview").style.display = "inline-block";
+        } else {
+            document.getElementById("datesWarnIndicator").style.display = "none";
+            document.getElementById("datesWarnIndicatorPreview").style.display = "none";
+        }
+
         renderVisitorsTable(originalData.visitors);
         blockInteractiveElements();
     } catch (err) {
@@ -290,7 +304,7 @@ async function fetchRequestDetails() {
 
 function renderVisitorsTable(visitors) {
     if (!visitors || visitors.length === 0) {
-        visitorsTableBody.innerHTML = "<tr><td colspan=\"4\" style=\"text-align:center; color:#94a3b8;\">Нет посетителей</td></tr>";
+        visitorsTableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#94a3b8;'>Нет посетителей</td></tr>";
         updateBlankVisitorsList();
         return;
     }
@@ -301,17 +315,20 @@ function renderVisitorsTable(visitors) {
         const vBtnText = isExcluded ? "Вернуть" : "Исключить";
         const vBtnClass = isExcluded ? "success" : "danger";
         const carBtnText = isPedestrian ? "Авто" : "Пешком";
-        const transportDisplay = isPedestrian ? "Пешком" : (originalData.car_info || "—");
+        let transportDisplay = originalData.car_info || "—";
+        if (isPedestrian) {
+            transportDisplay = `<span style="text-decoration: line-through; color: #991b1b;">${transportDisplay}</span>`;
+        }
         const isCarDisabled = !originalData.car_info ? "disabled" : "";
-        html += `<tr class="${isExcluded ? "excluded-row" : ""}">
+        html += `<tr class="${isExcluded ? 'excluded-row' : ''}">
             <td>${v.full_name}</td>
             <td>${v.passport_series || ""} ${v.passport_number || ""}</td>
             <td>${transportDisplay}</td>
             <td style="white-space:nowrap; text-align:center; vertical-align:middle;">
-                <span style="display:inline-flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; flex-wrap:nowrap;">
+                <div class="action-cell-inner">
                     <button class="table-btn-action ${vBtnClass} toggle-v-btn" style="display:inline-block; margin:0 2px;" data-v-id="${v.id}">${vBtnText}</button>
                     <button class="table-btn-action toggle-car-btn" style="display:inline-block; margin:0 2px;" data-v-id="${v.id}" ${isCarDisabled}>${carBtnText}</button>
-                </span>
+                </div>
             </td>
         </tr>`;
     });
@@ -337,11 +354,14 @@ function updateBlankVisitorsList() {
         items.push(`${v.full_name} (Паспорт: ${v.passport_series || ""} ${v.passport_number || ""}) / ${transportDisplay}`);
     });
     list.innerHTML = items.map(i => `<li>${i}</li>`).join("");
-    if (currentStartDateIso !== originalData.start_date || currentEndDateIso !== originalData.end_date) {
+
+    // Индикатор дат — из БД
+    if (originalData.dates_changed) {
         datesWarn.style.display = "inline-block";
     } else {
         datesWarn.style.display = "none";
     }
+
     if (excludedVisitorIds.size > 0 || pedestrianVisitorIds.size > 0) {
         groupWarn.style.display = "inline-block";
     } else {
@@ -431,15 +451,15 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         let finalCarInfo = originalData.car_info;
-        if (pedestrianVisitorIds.size > 0) {
-            finalCarInfo = "Частично пешком / Состав скорректирован оператором";
-        }
         const updatePayload = {
             status: "Одобрен",
             start_date: currentStartDateIso,
             end_date: currentEndDateIso,
             car_info: finalCarInfo,
-            comment: "Скорректировано оператором при согласовании"
+            comment: "Скорректировано оператором при согласовании",
+            pedestrian_ids: Array.from(pedestrianVisitorIds),
+            excluded_ids: Array.from(excludedVisitorIds),
+            dates_changed: currentStartDateIso !== originalData.start_date || currentEndDateIso !== originalData.end_date
         };
         fetch("/api/admin/requests/" + requestId, {
             method: "PUT",
@@ -468,7 +488,10 @@ document.addEventListener("DOMContentLoaded", function() {
             start_date: currentStartDateIso,
             end_date: currentEndDateIso,
             car_info: originalData.car_info,
-            comment: reason || "Без указания причины"
+            comment: reason || "Без указания причины",
+            pedestrian_ids: Array.from(pedestrianVisitorIds),
+            excluded_ids: Array.from(excludedVisitorIds),
+            dates_changed: currentStartDateIso !== originalData.start_date || currentEndDateIso !== originalData.end_date
         };
         fetch("/api/admin/requests/" + requestId, {
             method: "PUT",
@@ -489,7 +512,10 @@ document.addEventListener("DOMContentLoaded", function() {
             start_date: currentStartDateIso,
             end_date: currentEndDateIso,
             car_info: originalData.car_info,
-            comment: "Возвращено на согласование администратором"
+            comment: "Возвращено на согласование администратором",
+            pedestrian_ids: Array.from(pedestrianVisitorIds),
+            excluded_ids: Array.from(excludedVisitorIds),
+            dates_changed: currentStartDateIso !== originalData.start_date || currentEndDateIso !== originalData.end_date
         };
         fetch("/api/admin/requests/" + requestId, {
             method: "PUT",

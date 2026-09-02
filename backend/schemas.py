@@ -50,6 +50,7 @@ class PassRequestOut(PassRequestBase):
     created_at: datetime
     updated_at: datetime
     visitors: List[PassVisitorOut]
+    dates_changed: bool = False
 
     class Config:
         from_attributes = True
@@ -72,6 +73,7 @@ class PassRequestUpdate(BaseModel):
     end_date: datetime = Field(..., description="Дата окончания действия пропуска")
     car_info: Optional[str] = Field(None, max_length=255, description="Данные автотранспорта")
     comment: Optional[str] = Field(None, description="Комментарий оператора или причина отказа")
+    dates_changed: Optional[bool] = Field(None, description="Флаг: изменены ли даты")
     pedestrian_ids: Optional[List[int]] = Field(None, description="Список ID посетителей, идущих пешком")
     excluded_ids: Optional[List[int]] = Field(None, description="Список ID исключённых посетителей")
 

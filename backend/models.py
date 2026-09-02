@@ -29,7 +29,7 @@ class User(Base):
 
 class PassRequest(Base):
     __tablename__ = "pass_requests"
-    
+    dates_changed = Column(Boolean, default=False)
     id = Column(Integer, primary_key=True, index=True)
     company_name = Column(String(255), nullable=False, index=True)
     purpose = Column(Text, nullable=False)
@@ -43,6 +43,8 @@ class PassRequest(Base):
     visitors = relationship("PassVisitor", back_populates="request", cascade="all, delete-orphan")
 
 class PassVisitor(Base):
+    is_excluded = Column(Boolean, default=False)
+    is_pedestrian = Column(Boolean, default=False)
     __tablename__ = "pass_visitors"
     
     id = Column(Integer, primary_key=True, index=True)
