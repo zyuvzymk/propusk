@@ -24,11 +24,17 @@ const rejectReason = document.getElementById("rejectReason");
 const closeRejectModalBtn = document.getElementById("closeRejectModalBtn");
 const submitRejectBtn = document.getElementById("submitRejectBtn");
 
-// Элементы нового чистого предпросмотра
+// Элементы чистого предпросмотра
 const blankCompany = document.getElementById("blankCompany");
 const blankObject = document.getElementById("blankObject");
 const blankPeriod = document.getElementById("blankPeriod");
 const blankVisitorsContainer = document.getElementById("blankVisitorsContainer");
+
+// Кнопка и модалка полной заявки
+const openFullRequestBtn = document.getElementById("openFullRequestBtn");
+const fullRequestModal = document.getElementById("fullRequestModal");
+const closeFullRequestBtn = document.getElementById("closeFullRequestBtn");
+const fullRequestContent = document.getElementById("fullRequestContent");
 
 let originalData = null;
 let excludedVisitorIds = new Set();
@@ -132,14 +138,11 @@ async function fetchRequestDetails() {
             returnToPendingBtn.classList.add("hidden");
         }
 
-        // Заполняем чистый предпросмотр
+        // Предпросмотр
         blankCompany.innerText = originalData.company_name;
         blankObject.innerText = parsed.object;
         blankPeriod.innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
         renderVisitorsPreview(originalData.visitors);
-
-        // Индикаторы пока не используются
-        // if (originalData.dates_changed) { ... }
 
         renderVisitorsTable(originalData.visitors);
         blockInteractiveElements();
@@ -196,6 +199,73 @@ function renderVisitorsTable(visitors) {
         </tr>`;
     });
     visitorsTableBody.innerHTML = html;
+}
+
+function renderFullRequest() {
+    if (!originalData) return;
+    const parsed = parseCompositePurpose(originalData.purpose);
+
+    let tableRows = "";
+    let index = 1;
+    originalData.visitors.forEach(v => {
+        if (excludedVisitorIds.has(v.id)) return;
+        const isPedestrian = pedestrianVisitorIds.has(v.id);
+        let transport = isPedestrian ? "ПЕШКОМ" : (originalData.car_info || "—");
+        if (isPedestrian) {
+            transport = `<span style="color: #dc2626; font-weight: 700;">ПЕШКОМ</span>`;
+        }
+        const passport = `${v.passport_series || ""} ${v.passport_number || ""}`.trim() || "—";
+        tableRows += `<tr>
+            <td style="padding: 4px; text-align: center;">${index}</td>
+            <td style="padding: 4px;">${v.full_name}</td>
+            <td style="padding: 4px;">${v.position || "—"}</td>
+            <td style="padding: 4px;">${passport}</td>
+            <td style="padding: 4px;">${transport}</td>
+            <td style="padding: 4px; text-align: center;">_________________</td>
+        </tr>`;
+        index++;
+    });
+
+    fullRequestContent.innerHTML = `
+        <div style="max-width: 900px; margin: 0 auto; background: #ffffff; padding: 30px 35px; box-sizing: border-box; font-family: 'Times New Roman', serif; font-size: 12px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 48px; font-weight: 700; color: rgba(200,200,200,0.08); text-transform: uppercase; pointer-events: none; user-select: none; white-space: nowrap; z-index: 0;">ПОМОРСКАЯ СУДОВЕРФЬ</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 14px; position: relative; z-index: 1;">
+                <div style="font-size: 14px; font-weight: bold; text-transform: uppercase;">Управляющий<br>Е.П. Пеньевской</div>
+                <div style="text-align: center; font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">ЗАЯВКА НА ПРОПУСК</div>
+                <div style="font-size: 12px; text-align: right;"><strong>Дата:</strong> 04.08.2025</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; margin-bottom: 12px; position: relative; z-index: 1;">
+                <div><strong>От:</strong> ${originalData.company_name}</div>
+                <div><strong>Подрядчик/субподрядчик:</strong> ${originalData.contractor || "—"}</div>
+                <div><strong>Объект(ы):</strong> ${parsed.object}</div>
+                <div><strong>Период проведения работ:</strong> с ${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}</div>
+                <div style="grid-column: span 2;"><strong>Допуск на территорию:</strong> с 08.00 МСК по 18.00 МСК</div>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px; position: relative; z-index: 1;">
+                <thead>
+                    <tr style="background: #e9ecef; border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                        <th style="padding: 4px; text-align: center; width: 5%;">№</th>
+                        <th style="padding: 4px; text-align: left; width: 22%;">ФАМИЛИЯ ИМЯ ОТЧЕСТВО</th>
+                        <th style="padding: 4px; text-align: left; width: 18%;">ДОЛЖНОСТЬ</th>
+                        <th style="padding: 4px; text-align: left; width: 25%;">ДОКУМЕНТ, СЕРИЯ, НОМЕР</th>
+                        <th style="padding: 4px; text-align: left; width: 18%;">ТРАНСПОРТ</th>
+                        <th style="padding: 4px; text-align: center; width: 12%;">ПОДПИСЬ</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRows || "<tr><td colspan='6' style='text-align:center; color:#94a3b8;'>Нет посетителей</td></tr>"}</tbody>
+            </table>
+            <div style="font-size: 10px; line-height: 1.5; margin-bottom: 12px; position: relative; z-index: 1;">
+                <p style="margin: 2px 0;">Подачей настоящей заявки подтверждаем, что:</p>
+                <p style="margin: 2px 0 2px 18px;">1. Персональные данные получены лично от их владельцев.</p>
+                <p style="margin: 2px 0 2px 18px;">2. Письменные согласия на передачу персональных данных в адрес операторов персональных данных филиала ООО «Поморская Судоверфь» и их обработку в целях организации пропускного режима на территорию ООО «Поморская Судоверфь» от лиц, перечисленных в заявке.</p>
+                <p style="margin: 2px 0;">При нахождении указанных лиц на территории ООО «Поморская Судоверфь» несём ответственность за соблюдение ими Инструкции о пропускном и внутриобъектовом режиме на территории объекта, противопожарной безопасности, норм законодательства РФ об охране труда, об охране окружающей среды, правил дорожного движения.</p>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; border-top: 1px solid #000; padding-top: 8px; position: relative; z-index: 1;">
+                <div><strong>Представитель организации, подавшей заявку:</strong><br>${parsed.manager || "—"} / ${parsed.role || "—"}</div>
+                <div style="text-align: right;"><div><strong>Тел.:</strong> ${parsed.phone || "—"}</div><div><strong>E-mail:</strong> ${parsed.email || "—"}</div></div>
+            </div>
+        </div>
+    `;
 }
 
 function blockInteractiveElements() {
@@ -352,4 +422,18 @@ document.addEventListener("DOMContentLoaded", function() {
             window.location.href = "/dashboard";
         }).catch(err => alert("Критическая ошибка: " + err.message));
     });
+});
+
+// ======== МОДАЛКА ПОЛНОЙ ЗАЯВКИ ========
+openFullRequestBtn.addEventListener("click", function() {
+    renderFullRequest();
+    fullRequestModal.style.display = "flex";
+});
+
+closeFullRequestBtn.addEventListener("click", function() {
+    fullRequestModal.style.display = "none";
+});
+
+fullRequestModal.addEventListener("click", function(e) {
+    if (e.target === fullRequestModal) fullRequestModal.style.display = "none";
 });

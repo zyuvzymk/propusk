@@ -65,26 +65,44 @@
         </div>
     </div>
 
-    <!-- ПРЕДПРОСМОТР (чистый, без подписей) -->
-    <div class="preview-holder">
-        <div class="a4-sheet" id="blankSheet">
-            <div class="watermark">ПОМОРСКАЯ СУДОВЕРФЬ</div>
-            <div style="text-align: center; font-size: 11px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase;">
-                ООО "ПОМОРСКАЯ СУДОВЕРФЬ"<br>
-                <span style="font-size: 10px; font-weight: normal;">ПРЕДПРОСМОТР ЗАЯВКИ</span>
+    <!-- ПРЕДПРОСМОТР + КНОПКА -->
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="preview-holder">
+            <div class="a4-sheet" id="blankSheet">
+                <div class="watermark">ПОМОРСКАЯ СУДОВЕРФЬ</div>
+                <div style="text-align: center; font-size: 11px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase;">
+                    ООО "ПОМОРСКАЯ СУДОВЕРФЬ"<br>
+                    <span style="font-size: 10px; font-weight: normal;">ПРЕДПРОСМОТР ЗАЯВКИ</span>
+                </div>
+                <div style="font-size: 11px; line-height: 1.6;">
+                    <p style="margin: 4px 0;"><strong>Организация:</strong> ООО "<span id="blankCompany">...</span>"</p>
+                    <p style="margin: 4px 0;"><strong>Объект визита:</strong> <span id="blankObject">...</span></p>
+                    <p style="margin: 4px 0;"><strong>Срок действия:</strong> <span id="blankPeriod">...</span></p>
+                    <p style="margin: 12px 0 6px 0;"><strong>Список лиц, допущенных на территорию:</strong></p>
+                    <div id="blankVisitorsContainer" style="padding-left: 4px;"></div>
+                </div>
             </div>
-            <div style="font-size: 11px; line-height: 1.6;">
-                <p style="margin: 4px 0;"><strong>Организация:</strong> ООО "<span id="blankCompany">...</span>"</p>
-                <p style="margin: 4px 0;"><strong>Объект визита:</strong> <span id="blankObject">...</span></p>
-                <p style="margin: 4px 0;"><strong>Срок действия:</strong> <span id="blankPeriod">...</span></p>
-                <p style="margin: 12px 0 6px 0;"><strong>Список лиц, допущенных на территорию:</strong></p>
-                <div id="blankVisitorsContainer" style="padding-left: 4px;"></div>
-            </div>
+        </div>
+
+        <!-- КНОПКА ПОСМОТРЕТЬ ЗАЯВКУ (на всю ширину) -->
+        <button id="openFullRequestBtn">📄 Посмотреть заявку</button>
+    </div>
+</div>
+
+<!-- МОДАЛКА ПОЛНОЙ ЗАЯВКИ -->
+<div class="b2b-modal" id="fullRequestModal">
+    <div class="modal-content" style="max-width: 1024px; width: 95%; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 16px;">Заявка на пропуск (полный размер)</h3>
+            <button id="closeFullRequestBtn" style="background: #0f172a; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;">✕ Закрыть</button>
+        </div>
+        <div id="fullRequestContent" style="background: #ffffff; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: auto; max-height: 80vh; font-family: 'Times New Roman', serif;">
+            <!-- Сюда будет вставлена заявка -->
         </div>
     </div>
 </div>
 
-<!-- МОДАЛКИ -->
+<!-- ОСТАЛЬНЫЕ МОДАЛКИ -->
 <div class="b2b-modal" id="datesModal">
     <div class="modal-content">
         <h3 style="font-size:14px; margin:0 0 10px 0;">Изменить даты</h3>
