@@ -330,7 +330,11 @@ function updateBlankVisitorsList() {
         if (excludedVisitorIds.has(v.id)) return;
         let transport = pedestrianVisitorIds.has(v.id) ? "ПЕШКОМ" : (originalData.car_info || "—");
         if (!pedestrianVisitorIds.has(v.id)) allPedestrian = false;
-        items.push(`${v.full_name} (Паспорт: ${v.passport_series || ""} ${v.passport_number || ""}) / ${transport}`);
+        let transportDisplay = transport;
+        if (transport === "ПЕШКОМ") {
+            transportDisplay = `<span style="color: #dc2626; font-weight: 700;">ПЕШКОМ</span>`;
+        }
+        items.push(`${v.full_name} (Паспорт: ${v.passport_series || ""} ${v.passport_number || ""}) / ${transportDisplay}`);
     });
     list.innerHTML = items.map(i => `<li>${i}</li>`).join("");
     if (currentStartDateIso !== originalData.start_date || currentEndDateIso !== originalData.end_date) {
