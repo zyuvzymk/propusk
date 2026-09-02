@@ -6,6 +6,11 @@
     <title>Просмотр заявки — Поморская Судоверфь</title>
     <link rel="stylesheet" href="/static/styles.css">
     <style>
+        .blank-warn-indicator {
+            background-color: #fee2e2; border: 2px dashed #f87171; color: #991b1b;
+            font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px;
+            margin-left: 6px; display: none; text-transform: uppercase;
+        }
         .action-cell-inner { display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: nowrap; }
         .action-cell-inner { display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: nowrap; }
         .view-container { max-width: 1280px; margin: 10px auto; padding: 0 15px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; }
@@ -112,7 +117,9 @@
             <div style="font-size:12px; margin-bottom:4px;"><strong>Организация:</strong> <span id="blankCompany">—</span></div>
             <div style="font-size:12px; margin-bottom:4px;"><strong>Объект визита:</strong> <span id="blankObject">—</span></div>
             <div style="font-size:12px; margin-bottom:4px;"><strong>Срок действия:</strong> <span id="blankPeriod">—</span></div>
+            <span id="datesWarnIndicator" class="blank-warn-indicator" style="display:none;">Даты скорректированы</span>
             <div style="font-size:12px; margin-top:10px; border-top:1px solid #ccc; padding-top:8px;"><strong>Список лиц, допущенных на территорию:</strong></div>
+            <span id="groupWarnIndicator" class="blank-warn-indicator">Состав группы изменен!</span>
             <ul id="blankVisitorsList" style="font-size:11px; padding-left:18px; margin:6px 0;"></ul>
             <div style="margin-top:16px; font-size:11px; border-top:1px solid #ccc; padding-top:8px;">
                 <div><strong>Согласовано:</strong> Администрация судоверфи</div>
@@ -314,14 +321,31 @@ function renderVisitorsTable(visitors) {
 
 function updateBlankVisitorsList() {
     const list = document.getElementById("blankVisitorsList");
+    const datesWarn = document.getElementById("datesWarnIndicator");
+    const groupWarn = document.getElementById("groupWarnIndicator");
     if (!originalData || !originalData.visitors) { list.innerHTML = ""; return; }
     let items = [];
+    let allPedestrian = true;
     originalData.visitors.forEach(v => {
         if (excludedVisitorIds.has(v.id)) return;
-        let transport = pedestrianVisitorIds.has(v.id) ? "Пешком" : (originalData.car_info || "—");
+        let transport = pedestrianVisitorIds.has(v.id) ? "ПЕШКОМ" : (originalData.car_info || "—");
+        if (!pedestrianVisitorIds.has(v.id)) allPedestrian = false;
         items.push(`${v.full_name} (Паспорт: ${v.passport_series || ""} ${v.passport_number || ""}) / ${transport}`);
     });
     list.innerHTML = items.map(i => `<li>${i}</li>`).join("");
+    if (currentStartDateIso !== originalData.start_date || currentEndDateIso !== originalData.end_date) {
+        datesWarn.style.display = "inline-block";
+    } else {
+        datesWarn.style.display = "none";
+    }
+    if (excludedVisitorIds.size > 0 || pedestrianVisitorIds.size > 0) {
+        groupWarn.style.display = "inline-block";
+    } else {
+        groupWarn.style.display = "none";
+    }
+    if (allPedestrian && originalData.visitors.length > 0) {
+        document.querySelectorAll("#visitorsTableBody td:nth-child(3)").forEach(td => td.innerText = "ПЕШКОМ");
+    }
 }
 
 function blockInteractiveElements() {
@@ -390,6 +414,7 @@ document.addEventListener("DOMContentLoaded", function() {
             viewPeriod.innerText = `${formatDateOnly(start)} по ${formatDateOnly(end)}`;
             document.getElementById("blankPeriod").innerText = `${formatDateOnly(start)} по ${formatDateOnly(end)}`;
             datesModal.style.display = "none";
+            updateBlankVisitorsList();
             alert("Даты обновлены. Не забудьте сохранить изменения через 'Одобрить'.");
         } else {
             alert("Некорректный диапазон дат.");
