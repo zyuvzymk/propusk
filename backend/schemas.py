@@ -17,10 +17,12 @@ class PassVisitorCreate(PassVisitorBase):
 class PassVisitorOut(PassVisitorBase):
     id: int
     request_id: int
+    is_pedestrian: bool = False
+    is_excluded: bool = False
 
     class Config:
         from_attributes = True
-
+        
 
 # --- Схемы Заявок на Пропуск ---
 class PassRequestBase(BaseModel):
@@ -39,7 +41,7 @@ class PassRequestBase(BaseModel):
         return v
 
 class PassRequestCreate(PassRequestBase):
-    visitors: List[PassVisitorCreate] = Field(..., min_items=1, description="Список посетителей (минимум 1)")
+    visitors: List[PassVisitorCreate] = Field(..., min_length=1, description="Список посетителей (минимум 1)")
     honeypot: Optional[str] = Field(None, description="Скрытое поле-ловушка для спам-ботов")
 
 class PassRequestOut(PassRequestBase):
@@ -70,6 +72,8 @@ class PassRequestUpdate(BaseModel):
     end_date: datetime = Field(..., description="Дата окончания действия пропуска")
     car_info: Optional[str] = Field(None, max_length=255, description="Данные автотранспорта")
     comment: Optional[str] = Field(None, description="Комментарий оператора или причина отказа")
+    pedestrian_ids: Optional[List[int]] = Field(None, description="Список ID посетителей, идущих пешком")
+    excluded_ids: Optional[List[int]] = Field(None, description="Список ID исключённых посетителей")
 
     @field_validator('end_date')
     @classmethod
