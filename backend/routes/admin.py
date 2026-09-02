@@ -25,7 +25,7 @@ def get_all_requests(
     current_user: User = Depends(any_authenticated_user)
 ):
     """
-    Получение реестра заявок. 
+    Получение реестра заявок.
     Доступно абсолютно всем авторизованным пользователям Поморской Судоверфи (включая Охрану).
     """
     requests = db.query(PassRequest).order_by(PassRequest.created_at.desc()).all()
@@ -64,6 +64,21 @@ def update_and_approve_request(
             detail=f"Заявка №{request_id} на Поморской Судоверфи не найдена"
         )
 
+    # TASK-BA-1.1: Защита Read-Only для обработанных заявок
+    if db_request.status in [RequestStatus.APPROVED.value, RequestStatus.REJECTED.value]:
+        # TASK-BA-1.2: Привилегии Администратора для возврата на рассмотрение
+        if payload.status == RequestStatus.PENDING:
+            if current_user.role != UserRole.ADMIN.value:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Только администратор может возвращать заявку на рассмотрение"
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Заявка обработана, изменение запрещено"
+            )
+
     days_limit = (payload.end_date - payload.start_date).days
     if days_limit > 31:
         raise HTTPException(
@@ -83,6 +98,18 @@ def update_and_approve_request(
     try:
         db.commit()
         db.refresh(db_request)
+        
+        # TASK-BA-1.3: Аудит-лог операторов с добавлением метки в purpose
+        audit_mark = f" [Обработал: {current_user.username} ({current_user.role})]"
+        if db_request.purpose:
+            if audit_mark not in db_request.purpose:
+                db_request.purpose = db_request.purpose + audit_mark
+        else:
+            db_request.purpose = audit_mark
+        
+        db.commit()
+        db.refresh(db_request)
+        
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -90,6 +117,7 @@ def update_and_approve_request(
             detail=f"Ошибка транзакции СУБД при сохранении параметров: {str(e)}"
         )
     return db_request
+
 @router.patch("/requests/{request_id}/status", response_model=PassRequestOut)
 def update_request_status(
     request_id: int,
@@ -108,8 +136,31 @@ def update_request_status(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Заявка №{request_id} не найдена"
         )
-    
+
+    # Проверка на возможность изменения статуса для обработанных заявок
+    if db_request.status in [RequestStatus.APPROVED.value, RequestStatus.REJECTED.value]:
+        if new_status == RequestStatus.PENDING:
+            if current_user.role != UserRole.ADMIN.value:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Только администратор может возвращать заявку на рассмотрение"
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Заявка обработана, изменение статуса запрещено"
+            )
+
     db_request.status = new_status.value
+    
+    # Добавляем аудит-метку при изменении статуса
+    audit_mark = f" [Обработал: {current_user.username} ({current_user.role})]"
+    if db_request.purpose:
+        if audit_mark not in db_request.purpose:
+            db_request.purpose = db_request.purpose + audit_mark
+    else:
+        db_request.purpose = audit_mark
+    
     try:
         db.commit()
         db.refresh(db_request)
@@ -138,7 +189,7 @@ def delete_request(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Заявка №{request_id} не найдена"
         )
-    
+
     try:
         db.delete(db_request)
         db.commit()
