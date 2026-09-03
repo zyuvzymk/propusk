@@ -24,13 +24,11 @@ const rejectReason = document.getElementById("rejectReason");
 const closeRejectModalBtn = document.getElementById("closeRejectModalBtn");
 const submitRejectBtn = document.getElementById("submitRejectBtn");
 
-// Элементы чистого предпросмотра
 const blankCompany = document.getElementById("blankCompany");
 const blankObject = document.getElementById("blankObject");
 const blankPeriod = document.getElementById("blankPeriod");
 const blankVisitorsContainer = document.getElementById("blankVisitorsContainer");
 
-// Кнопка и модалка полной заявки
 const openFullRequestBtn = document.getElementById("openFullRequestBtn");
 const fullRequestModal = document.getElementById("fullRequestModal");
 const closeFullRequestBtn = document.getElementById("closeFullRequestBtn");
@@ -138,7 +136,6 @@ async function fetchRequestDetails() {
             returnToPendingBtn.classList.add("hidden");
         }
 
-        // Предпросмотр
         blankCompany.innerText = originalData.company_name;
         blankObject.innerText = parsed.object;
         blankPeriod.innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
@@ -216,55 +213,78 @@ function renderFullRequest() {
         }
         const passport = `${v.passport_series || ""} ${v.passport_number || ""}`.trim() || "—";
         tableRows += `<tr>
-            <td style="padding: 4px; text-align: center;">${index}</td>
-            <td style="padding: 4px;">${v.full_name}</td>
-            <td style="padding: 4px;">${v.position || "—"}</td>
-            <td style="padding: 4px;">${passport}</td>
-            <td style="padding: 4px;">${transport}</td>
-            <td style="padding: 4px; text-align: center;">_________________</td>
+            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${index}</td>
+            <td style="border: 1px solid #000; padding: 4px;">${v.full_name}</td>
+            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${v.position || "—"}</td>
+            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${passport}</td>
+            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${transport}</td>
+            <td style="border: 1px solid #000; padding: 4px; text-align: center;">_________________</td>
         </tr>`;
         index++;
     });
+    const tableHtml = tableRows || "<tr><td colspan='6' style='text-align:center; color:#94a3b8;'>Нет посетителей</td></tr>";
 
     fullRequestContent.innerHTML = `
-        <div style="max-width: 900px; margin: 0 auto; background: #ffffff; padding: 30px 35px; box-sizing: border-box; font-family: 'Times New Roman', serif; font-size: 12px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 48px; font-weight: 700; color: rgba(200,200,200,0.08); text-transform: uppercase; pointer-events: none; user-select: none; white-space: nowrap; z-index: 0;">ПОМОРСКАЯ СУДОВЕРФЬ</div>
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 14px; position: relative; z-index: 1;">
-                <div style="font-size: 14px; font-weight: bold; text-transform: uppercase;">Управляющий<br>Е.П. Пеньевской</div>
-                <div style="text-align: center; font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">ЗАЯВКА НА ПРОПУСК</div>
-                <div style="font-size: 12px; text-align: right;"><strong>Дата:</strong> 04.08.2025</div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; margin-bottom: 12px; position: relative; z-index: 1;">
-                <div><strong>От:</strong> ${originalData.company_name}</div>
-                <div><strong>Подрядчик/субподрядчик:</strong> ${originalData.contractor || "—"}</div>
-                <div><strong>Объект(ы):</strong> ${parsed.object}</div>
-                <div><strong>Период проведения работ:</strong> с ${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}</div>
-                <div style="grid-column: span 2;"><strong>Допуск на территорию:</strong> с 08.00 МСК по 18.00 МСК</div>
-            </div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px; position: relative; z-index: 1;">
-                <thead>
-                    <tr style="background: #e9ecef; border-top: 1px solid #000; border-bottom: 1px solid #000;">
-                        <th style="padding: 4px; text-align: center; width: 5%;">№</th>
-                        <th style="padding: 4px; text-align: left; width: 22%;">ФАМИЛИЯ ИМЯ ОТЧЕСТВО</th>
-                        <th style="padding: 4px; text-align: left; width: 18%;">ДОЛЖНОСТЬ</th>
-                        <th style="padding: 4px; text-align: left; width: 25%;">ДОКУМЕНТ, СЕРИЯ, НОМЕР</th>
-                        <th style="padding: 4px; text-align: left; width: 18%;">ТРАНСПОРТ</th>
-                        <th style="padding: 4px; text-align: center; width: 12%;">ПОДПИСЬ</th>
-                    </tr>
-                </thead>
-                <tbody>${tableRows || "<tr><td colspan='6' style='text-align:center; color:#94a3b8;'>Нет посетителей</td></tr>"}</tbody>
-            </table>
-            <div style="font-size: 10px; line-height: 1.5; margin-bottom: 12px; position: relative; z-index: 1;">
-                <p style="margin: 2px 0;">Подачей настоящей заявки подтверждаем, что:</p>
-                <p style="margin: 2px 0 2px 18px;">1. Персональные данные получены лично от их владельцев.</p>
-                <p style="margin: 2px 0 2px 18px;">2. Письменные согласия на передачу персональных данных в адрес операторов персональных данных филиала ООО «Поморская Судоверфь» и их обработку в целях организации пропускного режима на территорию ООО «Поморская Судоверфь» от лиц, перечисленных в заявке.</p>
-                <p style="margin: 2px 0;">При нахождении указанных лиц на территории ООО «Поморская Судоверфь» несём ответственность за соблюдение ими Инструкции о пропускном и внутриобъектовом режиме на территории объекта, противопожарной безопасности, норм законодательства РФ об охране труда, об охране окружающей среды, правил дорожного движения.</p>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 11px; border-top: 1px solid #000; padding-top: 8px; position: relative; z-index: 1;">
-                <div><strong>Представитель организации, подавшей заявку:</strong><br>${parsed.manager || "—"} / ${parsed.role || "—"}</div>
-                <div style="text-align: right;"><div><strong>Тел.:</strong> ${parsed.phone || "—"}</div><div><strong>E-mail:</strong> ${parsed.email || "—"}</div></div>
-            </div>
-        </div>
+        <style>
+            table { width: 100%; border-collapse: collapse; margin: 1em 0; }
+            th, td { border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top; }
+            th { background: #f0f0f0; font-weight: bold; }
+            strong { font-weight: bold; }
+            p { margin: 0.5em 0; }
+        </style>
+        <table style="width: 100%; border-collapse: collapse; border: none;">
+            <colgroup>
+                <col style="width: 50%;">
+                <col style="width: 50%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th style="border: none; padding: 4px 0;"><strong>Проход/проезд разрешен</strong></th>
+                    <th style="border: none; text-align: right; padding: 4px 0;">
+                        <p style="margin: 0;">Форма утверждена 04.08.2025</p>
+                        <p style="margin: 0;">ООО «Поморская Судоверфь»</p>
+                    </th>
+                </tr>
+                <tr>
+                    <th style="border: none; padding: 4px 0;" colspan="2"><strong>Управляющий __________________ Е.П. Пеньевской</strong></th>
+                </tr>
+            </thead>
+        </table>
+        <p style="font-size: 18px; font-weight: bold; text-align: center; margin: 12px 0;">ЗАЯВКА НА ПРОПУСК</p>
+        <p><strong>От:</strong> ${originalData.company_name}</p>
+        <p><strong>Подрядчик/субподрядчик:</strong> ${originalData.contractor || "—"}</p>
+        <p><strong>Объект(ы):</strong> ${parsed.object}</p>
+        <p><strong>Период проведения работ:</strong> с ${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}</p>
+        <p><strong>Допуск на территорию:</strong> с 08.00 МСК по 18.00 МСК</p>
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; font-size: 12px;">
+            <colgroup>
+                <col style="width: 6%;">
+                <col style="width: 26%;">
+                <col style="width: 13%;">
+                <col style="width: 22%;">
+                <col style="width: 16%;">
+                <col style="width: 14%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: center;"><strong>№ П/П</strong></th>
+                    <th style="border: 1px solid #000; padding: 4px;"><strong>ФАМИЛИЯ ИМЯ ОТЧЕСТВО</strong></th>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: center;"><strong>ДОЛЖНОСТЬ</strong></th>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: center;"><strong>ДОКУМЕНТ, СЕРИЯ, НОМЕР</strong></th>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: center;"><strong>ТРАНСПОРТ</strong></th>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: center;"><strong>ПОДПИСЬ</strong></th>
+                </tr>
+            </thead>
+            <tbody>${tableHtml}</tbody>
+        </table>
+        <p style="margin: 8px 0;">Подачей настоящей заявки подтверждаем, что:</p>
+        <p style="margin: 2px 0 2px 20px;">1. Персональные данные получены лично от их владельцев.</p>
+        <p style="margin: 2px 0 2px 20px;">2. Письменные согласия на передачу персональных данных в адрес операторов персональных данных филиала ООО «Поморская Судоверфь» и их обработку в целях организации пропускного режима на территорию ООО «Поморская Судоверфь» от лиц, перечисленных в заявке.</p>
+        <p style="margin: 6px 0;"><strong>При нахождении указанных лиц на территории ООО «Поморская Судоверфь» несём ответственность за соблюдение ими Инструкции о пропускном и внутриобъектовом режиме на территории объекта, противопожарной безопасности, норм законодательства РФ об охране труда, об охране окружающей среды, правил дорожного движения.</strong></p>
+        <p style="margin: 8px 0 2px 0;"><strong>Представитель организации, подавшей заявку:</strong></p>
+        <p style="margin: 2px 0;">${parsed.manager || "—"} / ${parsed.role || "—"}</p>
+        <p style="margin: 2px 0;"><strong>Тел.:</strong> ${parsed.phone || "—"}</p>
+        <p style="margin: 2px 0;"><strong>E-mail:</strong> ${parsed.email || "—"}</p>
     `;
 }
 
@@ -424,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
-// ======== МОДАЛКА ПОЛНОЙ ЗАЯВКИ ========
+// ======== МОДАЛКА ЗАЯВКИ ========
 openFullRequestBtn.addEventListener("click", function() {
     renderFullRequest();
     fullRequestModal.style.display = "flex";
