@@ -5,6 +5,7 @@ from models import RequestStatus, UserRole
 
 # --- Схемы Посетителей ---
 class PassVisitorBase(BaseModel):
+    position: Optional[str] = Field(None, max_length=255, description="Должность сотрудника")
     full_name: str = Field(..., min_length=2, max_length=255, description="ФИО посетителя")
     passport_series: str = Field(..., min_length=4, max_length=10, description="Серия паспорта")
     passport_number: str = Field(..., min_length=6, max_length=10, description="Номер паспорта")
@@ -22,10 +23,11 @@ class PassVisitorOut(PassVisitorBase):
 
     class Config:
         from_attributes = True
-        
+
 
 # --- Схемы Заявок на Пропуск ---
 class PassRequestBase(BaseModel):
+    contractor: Optional[str] = Field(None, max_length=255, description="Подрядчик/субподрядчик")
     company_name: str = Field(..., min_length=2, max_length=255, description="Название организации")
     purpose: str = Field(..., min_length=5, description="Цель визита")
     car_info: Optional[str] = Field(None, max_length=255, description="Данные автотранспорта (NULL если пешком)")
@@ -76,6 +78,7 @@ class PassRequestUpdate(BaseModel):
     dates_changed: Optional[bool] = Field(None, description="Флаг: изменены ли даты")
     pedestrian_ids: Optional[List[int]] = Field(None, description="Список ID посетителей, идущих пешком")
     excluded_ids: Optional[List[int]] = Field(None, description="Список ID исключённых посетителей")
+    contractor: Optional[str] = Field(None, max_length=255, description="Подрядчик/субподрядчик")
 
     @field_validator('end_date')
     @classmethod
