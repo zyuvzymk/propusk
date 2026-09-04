@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр заявки — Поморская Судоверфь</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/css/view.css">
+</head>
+<body>
+
+<div class="container" style="max-width: 1280px; margin: 10px auto 0 auto; padding: 0 15px;">
+    <a href="/dashboard" style="color: #2563eb; text-decoration: none; font-size: 13px; font-weight: 500;">← Вернуться в реестр</a>
+</div>
+
+<div class="view-container">
+    <div class="info-panel">
+        <div class="b2b-section-card">
+            <div class="section-header">1. Информация о компании</div>
+            <div class="data-row"><span class="data-label">Организация:</span><span class="data-value" id="viewCompany">—</span></div>
+            <div class="data-row"><span class="data-label">Объект / Судно:</span><span class="data-value" id="viewObject">—</span></div>
+            <div class="data-row"><span class="data-label">Вид работ:</span><span class="data-value" id="viewWork">—</span></div>
+        </div>
+
+        <div class="b2b-section-card">
+            <div class="section-header">2. Контактное лицо</div>
+            <div class="data-row"><span class="data-label">ФИО ответственного:</span><span class="data-value" id="viewManager">—</span></div>
+            <div class="data-row"><span class="data-label">Должность:</span><span class="data-value" id="viewRole">—</span></div>
+            <div class="data-row"><span class="data-label">Телефон / Email:</span><span class="data-value" id="viewContacts">—</span></div>
+        </div>
+
+        <div class="b2b-section-card hidden" id="auditSection">
+            <div class="section-header">Аудит</div>
+            <div id="viewAuditContainer"></div>
+        </div>
+
+        <div class="b2b-section-card">
+            <div class="section-header">3. Сроки визита</div>
+            <div class="period-row">
+                <span class="data-label">Период действия:</span>
+                <span class="data-value" id="viewPeriod">—</span>
+                <span id="datesWarnIndicator" class="blank-warn-indicator" style="display:none;">Даты скорректированы</span>
+                <button id="changeDatesBtn" class="table-btn-action" style="margin-left: 4px;">Изменить даты</button>
+            </div>
+        </div>
+
+        <div class="b2b-section-card">
+            <div class="section-header">4. Список людей и автотранспорта</div>
+            <table>
+                <colgroup>
+                    <col class="col-name">
+                    <col class="col-passport">
+                    <col class="col-transport">
+                    <col class="col-action">
+                </colgroup>
+                <thead><tr><th>ФИО сотрудника</th><th>Паспортные данные</th><th>Транспорт</th><th>Действие</th></tr></thead>
+                <tbody id="visitorsTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="flex-row">
+            <button id="approveRequestBtn" class="btn btn-primary">✓ Одобрить и подписать</button>
+            <button id="rejectRequestBtn" class="btn btn-danger">✕ Отклонить заявку</button>
+            <button id="returnToPendingBtn" class="btn btn-warning hidden">↺ Вернуть на согласование</button>
+        </div>
+    </div>
+
+    <div class="preview-holder">
+        <div class="a4-sheet" id="blankSheet">
+            <div class="watermark">ПОМОРСКАЯ СУДОВЕРФЬ</div>
+            <div style="text-align:center; font-size:14px; font-weight:700; margin-bottom:10px;">ООО "ПОМОРСКАЯ СУДОВЕРФЬ"</div>
+            <div style="text-align:center; font-size:12px; font-weight:600; border-bottom:1px solid #000; padding-bottom:6px; margin-bottom:12px;">БЛАНК ПРОПУСКА РЕЖИМНОГО ОБЪЕКТА</div>
+            <div style="font-size:13px; margin-bottom:10px;"><strong>ВРЕМЕННЫЙ ПРОПУСК № <span id="blankId">...</span></strong></div>
+            <div style="font-size:12px; margin-bottom:4px;"><strong>Организация:</strong> <span id="blankCompany">—</span></div>
+            <div style="font-size:12px; margin-bottom:4px;"><strong>Объект визита:</strong> <span id="blankObject">—</span></div>
+            <div style="font-size:12px; margin-bottom:4px;"><strong>Срок действия:</strong> <span id="blankPeriod">—</span></div>
+            <span id="datesWarnIndicatorPreview" class="blank-warn-indicator" style="display:none;">Даты скорректированы</span>
+            <div style="font-size:12px; margin-top:10px; border-top:1px solid #ccc; padding-top:8px;"><strong>Список лиц, допущенных на территорию:</strong></div>
+            <span id="groupWarnIndicator" class="blank-warn-indicator" style="display:none;">Состав группы изменен!</span>
+            <ul id="blankVisitorsList" style="font-size:11px; padding-left:18px; margin:6px 0;"></ul>
+            <div style="margin-top:16px; font-size:11px; border-top:1px solid #ccc; padding-top:8px;">
+                <div><strong>Согласовано:</strong> Администрация судоверфи</div>
+                <div style="margin-top:4px;"><strong>Подпись/Печать:</strong> _________________</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модалки -->
+<div class="b2b-modal" id="datesModal">
+    <div class="modal-content">
+        <h3 style="font-size:14px; margin:0 0 10px 0;">Изменить даты</h3>
+        <label style="font-size:12px;">Начало: <input type="date" id="modalStartDate" style="width:100%; padding:4px; margin:4px 0;"></label>
+        <label style="font-size:12px;">Конец: <input type="date" id="modalEndDate" style="width:100%; padding:4px; margin:4px 0;"></label>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+            <button id="closeModalBtn" class="table-btn-action" style="margin:0;">Отмена</button>
+            <button id="applyDatesBtn" class="table-btn-action" style="margin:0; background: #1e3a8a; color: #fff; border-color: #1e3a8a;">Применить</button>
+        </div>
+    </div>
+</div>
+
+<div class="b2b-modal" id="rejectModal">
+    <div class="modal-content">
+        <h3 style="font-size:14px; margin:0 0 10px 0;">Укажите причину отклонения</h3>
+        <input type="text" id="rejectReason" placeholder="Причина..." style="width:100%; padding:6px; margin:4px 0;">
+        <div style="display:flex; gap:8px; margin-top:10px;">
+            <button id="closeRejectModalBtn" class="table-btn-action" style="margin:0;">Отмена</button>
+            <button id="submitRejectBtn" class="table-btn-action danger" style="margin:0; font-weight:600;">Отклонить заявку</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.requestId = {{ request_id }};
+</script>
+<script src="/static/js/view.js"></script>
+</body>
+</html>
