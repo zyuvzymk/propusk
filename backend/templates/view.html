@@ -58,7 +58,7 @@
             </table>
         </div>
 
-        <div class="flex-row">
+        <div class="flex-row" id="actionButtonsBlock">
             <button id="approveRequestBtn" class="btn btn-primary">✓ Одобрить и подписать</button>
             <button id="rejectRequestBtn" class="btn btn-danger">✕ Отклонить заявку</button>
             <button id="returnToPendingBtn" class="btn btn-warning hidden">↺ Вернуть на согласование</button>
@@ -84,21 +84,18 @@
             </div>
         </div>
 
-        <!-- КНОПКА ПОСМОТРЕТЬ ЗАЯВКУ -->
         <button id="openFullRequestBtn">📄 Посмотреть заявку</button>
     </div>
 </div>
 
-<!-- МОДАЛКА ЗАЯВКИ (НОВЫЙ СТИЛЬ) -->
+<!-- МОДАЛКА ЗАЯВКИ -->
 <div class="b2b-modal" id="fullRequestModal">
     <div class="modal-content" style="max-width: 1024px; width: 95%; padding: 20px; background: #ffffff; overflow: auto; max-height: 90vh;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <h3 style="margin: 0; font-size: 16px;">Заявка на пропуск</h3>
             <button id="closeFullRequestBtn" style="background: #0f172a; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;">✕ Закрыть</button>
         </div>
-        <div id="fullRequestContent" style="background: #ffffff; padding: 10px; overflow: auto;">
-            <!-- Сюда вставляется заявка через JS -->
-        </div>
+        <div id="fullRequestContent" style="background: #ffffff; padding: 10px; overflow: auto;"></div>
     </div>
 </div>
 

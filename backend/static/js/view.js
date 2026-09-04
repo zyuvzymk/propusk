@@ -23,6 +23,7 @@ const rejectModal = document.getElementById("rejectModal");
 const rejectReason = document.getElementById("rejectReason");
 const closeRejectModalBtn = document.getElementById("closeRejectModalBtn");
 const submitRejectBtn = document.getElementById("submitRejectBtn");
+const actionButtonsBlock = document.getElementById("actionButtonsBlock");
 
 const blankCompany = document.getElementById("blankCompany");
 const blankObject = document.getElementById("blankObject");
@@ -130,6 +131,11 @@ async function fetchRequestDetails() {
             auditSection.classList.add("hidden");
         }
 
+        if (userRole === "Охрана") {
+            actionButtonsBlock.style.display = "none";
+            changeDatesBtn.style.display = "none";
+        }
+
         if (userRole === "Администратор" && (originalData.status === "Одобрен" || originalData.status === "Отклонен")) {
             returnToPendingBtn.classList.remove("hidden");
         } else {
@@ -172,6 +178,9 @@ function renderVisitorsTable(visitors) {
         return;
     }
     let html = "";
+    const isSecurity = userRole === "Охрана";
+    const disabledAttr = isSecurity ? 'disabled style="opacity:0.6; cursor:not-allowed;"' : '';
+
     visitors.forEach(v => {
         const isExcluded = excludedVisitorIds.has(v.id);
         const isPedestrian = pedestrianVisitorIds.has(v.id);
@@ -183,14 +192,15 @@ function renderVisitorsTable(visitors) {
             transportDisplay = `<span style="text-decoration: line-through; color: #991b1b;">${transportDisplay}</span>`;
         }
         const isCarDisabled = !originalData.car_info ? "disabled" : "";
+
         html += `<tr class="${isExcluded ? 'excluded-row' : ''}">
             <td>${v.full_name}</td>
             <td>${v.passport_series || ""} ${v.passport_number || ""}</td>
             <td>${transportDisplay}</td>
             <td style="white-space:nowrap; text-align:center; vertical-align:middle;">
                 <div class="action-cell-inner">
-                    <button class="table-btn-action ${vBtnClass} toggle-v-btn" data-v-id="${v.id}">${vBtnText}</button>
-                    <button class="table-btn-action toggle-car-btn" data-v-id="${v.id}" ${isCarDisabled}>${carBtnText}</button>
+                    <button class="table-btn-action ${vBtnClass} toggle-v-btn" data-v-id="${v.id}" ${disabledAttr}>${vBtnText}</button>
+                    <button class="table-btn-action toggle-car-btn" data-v-id="${v.id}" ${isCarDisabled} ${disabledAttr}>${carBtnText}</button>
                 </div>
             </td>
         </tr>`;
@@ -315,6 +325,8 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
     visitorsTableBody.addEventListener("click", function(e) {
+        if (userRole === "Охрана") return;
+
         if (e.target.classList.contains("toggle-v-btn")) {
             const vId = parseInt(e.target.dataset.vId);
             if (excludedVisitorIds.has(vId)) {
