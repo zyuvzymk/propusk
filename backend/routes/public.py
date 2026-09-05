@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import sys
 import os
+import re
 
 # Добавляем корневой каталог backend в пути поиска, чтобы избежать ошибок импорта
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -9,6 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import get_db
 from models import PassRequest, PassVisitor, RequestStatus
 from schemas import PassRequestCreate, PassRequestOut
+from utils.email import send_email
 
 router = APIRouter(prefix="/api/public", tags=["Public Form"])
 
@@ -24,7 +26,7 @@ def create_public_request(payload: PassRequestCreate, db: Session = Depends(get_
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Automated submission detected."
         )
-    
+
     # 1. Формируем основную запись заявки
     db_request = PassRequest(
         company_name=payload.company_name,
@@ -35,10 +37,10 @@ def create_public_request(payload: PassRequestCreate, db: Session = Depends(get_
         status=RequestStatus.PENDING
     )
     db.add(db_request)
-    
+
     try:
         # Извлекаем сгенерированный базой ID без фиксации транзакции на диске
-        db.flush()  
+        db.flush()
 
         # 2. Привязываем каждого посетителя к полученному ID заявки
         for visitor_data in payload.visitors:
@@ -47,16 +49,33 @@ def create_public_request(payload: PassRequestCreate, db: Session = Depends(get_
                 **visitor_data.model_dump()
             )
             db.add(db_visitor)
-        
+
         # Фиксируем атомарную транзакцию целиком
         db.commit()
         db.refresh(db_request)
-        
+
+        # === УВЕДОМЛЕНИЕ ОПЕРАТОРУ ===
+        send_email(
+            to=["operator@zymk.ru"],
+            subject=f"Новая заявка на пропуск №{db_request.id}",
+            body=f"Поступила новая заявка №{db_request.id}\n\nСсылка: https://propusk.shipyard29.ru/view/{db_request.id}"
+        )
+
+        # === УВЕДОМЛЕНИЕ ОТПРАВИТЕЛЮ ===
+        email_match = re.search(r'Email:\s*([^\s,|]+)', payload.purpose)
+        if email_match:
+            client_email = email_match.group(1)
+            send_email(
+                to=[client_email],
+                subject="Ваша заявка на пропуск принята на рассмотрение",
+                body=f"Ваша заявка №{db_request.id} на рассмотрении."
+            )
+
     except Exception as e:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Ошибка транзакции СУБД при сохранении данных Поморской Судоверфи: {str(e)}"
         )
-        
+
     return db_request

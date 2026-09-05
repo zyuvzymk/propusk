@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y \
     msmtp \
     && rm -rf /var/lib/apt/lists/*
 
+# Копируем конфиг msmtp
 COPY msmtprc /etc/msmtprc
-
 
 # Копируем requirements и устанавливаем зависимости Python
 COPY requirements.txt .
