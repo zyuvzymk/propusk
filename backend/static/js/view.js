@@ -116,7 +116,7 @@ async function fetchRequestDetails() {
         currentStartDateIso = originalData.start_date;
         currentEndDateIso = originalData.end_date;
 
-        viewCompany.innerText = `ООО "${originalData.company_name}"`;
+        viewCompany.innerText = originalData.company_name;
         viewObject.innerText = parsed.object;
         viewWork.innerText = parsed.work;
         viewManager.innerText = parsed.manager;
@@ -145,8 +145,16 @@ async function fetchRequestDetails() {
         blankCompany.innerText = originalData.company_name;
         blankObject.innerText = parsed.object;
         blankPeriod.innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
-        renderVisitorsPreview(originalData.visitors);
 
+        // === ИНДИКАТОР ДАТ ===
+        const datesWarn = document.getElementById("datesWarnIndicatorPreview");
+        if (originalData.dates_changed) {
+            datesWarn.style.display = "inline-block";
+        } else {
+            datesWarn.style.display = "none";
+        }
+
+        renderVisitorsPreview(originalData.visitors);
         renderVisitorsTable(originalData.visitors);
         blockInteractiveElements();
     } catch (err) {
@@ -367,6 +375,17 @@ document.addEventListener("DOMContentLoaded", function() {
             currentEndDateIso = end;
             viewPeriod.innerText = `${formatDateOnly(start)} по ${formatDateOnly(end)}`;
             blankPeriod.innerText = `${formatDateOnly(start)} по ${formatDateOnly(end)}`;
+
+            // === ПОКАЗЫВАЕМ ИНДИКАТОР СРАЗУ ===
+            const datesWarn = document.getElementById("datesWarnIndicatorPreview");
+            const origStart = originalData.start_date.split("T")[0];
+            const origEnd = originalData.end_date.split("T")[0];
+            if (start !== origStart || end !== origEnd) {
+                datesWarn.style.display = "inline-block";
+            } else {
+                datesWarn.style.display = "none";
+            }
+
             datesModal.style.display = "none";
             alert("Даты обновлены. Не забудьте сохранить изменения через 'Одобрить'.");
         } else {

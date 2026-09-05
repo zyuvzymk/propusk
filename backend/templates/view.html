@@ -65,7 +65,7 @@
         </div>
     </div>
 
-    <!-- ПРЕДПРОСМОТР + КНОПКА -->
+    <!-- ПРЕДПРОСМОТР -->
     <div style="display: flex; flex-direction: column; gap: 8px;">
         <div class="preview-holder">
             <div class="a4-sheet" id="blankSheet">
@@ -78,6 +78,7 @@
                     <p style="margin: 4px 0;"><strong>Организация:</strong> ООО "<span id="blankCompany">...</span>"</p>
                     <p style="margin: 4px 0;"><strong>Объект визита:</strong> <span id="blankObject">...</span></p>
                     <p style="margin: 4px 0;"><strong>Срок действия:</strong> <span id="blankPeriod">...</span></p>
+                    <span id="datesWarnIndicatorPreview" class="blank-warn-indicator" style="display:none;">⚠️ Даты скорректированы</span>
                     <p style="margin: 12px 0 6px 0;"><strong>Список лиц, допущенных на территорию:</strong></p>
                     <div id="blankVisitorsContainer" style="padding-left: 4px;"></div>
                 </div>
@@ -88,18 +89,7 @@
     </div>
 </div>
 
-<!-- МОДАЛКА ЗАЯВКИ -->
-<div class="b2b-modal" id="fullRequestModal">
-    <div class="modal-content" style="max-width: 1024px; width: 95%; padding: 20px; background: #ffffff; overflow: auto; max-height: 90vh;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="margin: 0; font-size: 16px;">Заявка на пропуск</h3>
-            <button id="closeFullRequestBtn" style="background: #0f172a; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;">✕ Закрыть</button>
-        </div>
-        <div id="fullRequestContent" style="background: #ffffff; padding: 10px; overflow: auto;"></div>
-    </div>
-</div>
-
-<!-- ОСТАЛЬНЫЕ МОДАЛКИ -->
+<!-- МОДАЛКИ -->
 <div class="b2b-modal" id="datesModal">
     <div class="modal-content">
         <h3 style="font-size:14px; margin:0 0 10px 0;">Изменить даты</h3>
@@ -120,6 +110,16 @@
             <button id="closeRejectModalBtn" class="table-btn-action" style="margin:0;">Отмена</button>
             <button id="submitRejectBtn" class="table-btn-action danger" style="margin:0; font-weight:600;">Отклонить заявку</button>
         </div>
+    </div>
+</div>
+
+<div class="b2b-modal" id="fullRequestModal">
+    <div class="modal-content" style="max-width: 1024px; width: 95%; padding: 20px; background: #ffffff; overflow: auto; max-height: 90vh;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 16px;">Заявка на пропуск</h3>
+            <button id="closeFullRequestBtn" style="background: #0f172a; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;">✕ Закрыть</button>
+        </div>
+        <div id="fullRequestContent" style="background: #ffffff; padding: 10px; overflow: auto;"></div>
     </div>
 </div>
 

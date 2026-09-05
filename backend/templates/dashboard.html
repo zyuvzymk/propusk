@@ -278,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             row.innerHTML = `
                 <td style="padding:10px; text-align: center; color:#475569;">${formatDateOnly(req.created_at)}</td>
-                <td style="padding:10px; font-weight:700; color:#1e293b;">ООО "${req.company_name}"</td>
+                <td style="padding:10px; font-weight:700; color:#1e293b;">${req.company_name}</td>
                 <td style="padding:10px; color:#334155;">${parsed.object}</td>
                 <td style="padding:10px; color:#334155;">${parsed.manager}</td>
                 <td style="padding:10px; text-align: center; color:#475569; font-weight:500;">${formatPeriod(req.start_date, req.end_date)}</td>
