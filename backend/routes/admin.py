@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 import sys
 import os
+import re
 
 # Гарантируем корректный импорт модулей
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -11,6 +12,7 @@ from database import get_db
 from models import PassRequest, User, UserRole, RequestStatus
 from schemas import PassRequestOut, PassRequestUpdate
 from routes.auth import get_current_user, RoleChecker
+from utils.email import send_email
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Registry & Management"])
 
@@ -24,10 +26,6 @@ def get_all_requests(
     db: Session = Depends(get_db),
     current_user: User = Depends(any_authenticated_user)
 ):
-    """
-    Получение реестра заявок.
-    Доступно абсолютно всем авторизованным пользователям Поморской Судоверфи (включая Охрану).
-    """
     requests = db.query(PassRequest).order_by(PassRequest.created_at.desc()).all()
     return requests
 
@@ -37,10 +35,6 @@ def get_request_by_id(
     db: Session = Depends(get_db),
     current_user: User = Depends(any_authenticated_user)
 ):
-    """
-    Детальный просмотр заявки по ID для интерактивного макета сравнения данных.
-    Доступно любой роли, включая Охрану для сверки документов на КПП.
-    """
     db_request = db.query(PassRequest).filter(PassRequest.id == request_id).first()
     if not db_request:
         raise HTTPException(
@@ -48,7 +42,6 @@ def get_request_by_id(
             detail=f"Заявка №{request_id} на Поморской Судоверфи не найдена"
         )
     return db_request
-
 
 @router.put("/requests/{request_id}", response_model=PassRequestOut)
 def update_and_approve_request(
@@ -66,7 +59,6 @@ def update_and_approve_request(
 
     # TASK-BA-1.1: Защита Read-Only для обработанных заявок
     if db_request.status in [RequestStatus.APPROVED.value, RequestStatus.REJECTED.value]:
-        # TASK-BA-1.2: Привилегии Администратора для возврата на рассмотрение
         if payload.status == RequestStatus.PENDING:
             if current_user.role != UserRole.ADMIN.value:
                 raise HTTPException(
@@ -86,17 +78,14 @@ def update_and_approve_request(
             detail="Период действия временного пропуска не может превышать 31 день по регламенту СБ"
         )
 
-    # Сохраняем флаг изменения дат ДО обновления
-    dates_changed = (
-        payload.start_date != db_request.start_date or
-        payload.end_date != db_request.end_date
-    )
-
     db_request.status = payload.status.value
     db_request.start_date = payload.start_date
     db_request.end_date = payload.end_date
     db_request.car_info = payload.car_info
-    db_request.dates_changed = dates_changed
+    db_request.dates_changed = (
+        payload.start_date != db_request.start_date or
+        payload.end_date != db_request.end_date
+    )
 
     if payload.comment and payload.comment.strip():
         if " | Комментарий:" not in db_request.purpose:
@@ -114,18 +103,44 @@ def update_and_approve_request(
     try:
         db.commit()
         db.refresh(db_request)
-        
-        # TASK-BA-1.3: Аудит-лог операторов с добавлением метки в purpose
+
+        # TASK-BA-1.3: Аудит-лог операторов
         audit_mark = f" [Обработал: {current_user.username} ({current_user.role})]"
         if db_request.purpose:
             if audit_mark not in db_request.purpose:
                 db_request.purpose = db_request.purpose + audit_mark
         else:
             db_request.purpose = audit_mark
-        
+
         db.commit()
         db.refresh(db_request)
-        
+
+        # === УВЕДОМЛЕНИЯ ===
+        email_match = re.search(r'Email:\s*([^\s,|]+)', db_request.purpose)
+        client_email = email_match.group(1) if email_match else None
+
+        if payload.status == RequestStatus.APPROVED:
+            send_email(
+                to=["security@zymk.ru"],
+                subject=f"Заявка №{db_request.id} одобрена",
+                body=f"Заявка №{db_request.id} одобрена.\n\nСсылка: https://propusk.shipyard29.ru/view/{db_request.id}"
+            )
+            if client_email:
+                send_email(
+                    to=[client_email],
+                    subject=f"Заявка №{db_request.id} одобрена",
+                    body=f"Ваша заявка №{db_request.id} одобрена."
+                )
+
+        if payload.status == RequestStatus.REJECTED:
+            if client_email:
+                reason = payload.comment or "Без указания причины"
+                send_email(
+                    to=[client_email],
+                    subject=f"Заявка №{db_request.id} отклонена",
+                    body=f"Ваша заявка №{db_request.id} отклонена.\n\nПричина: {reason}"
+                )
+
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -141,11 +156,6 @@ def update_request_status(
     db: Session = Depends(get_db),
     current_user: User = Depends(operators_and_admin)
 ):
-    """
-    Изменение статуса заявки (Одобрен / Отклонен).
-    ДОСТУПНО: Администратору, Оператору 1, Оператору 2.
-    СТРОГО ЗАПРЕЩЕНО: Сотрудникам Охраны КПП (возвращает 403 Forbidden).
-    """
     db_request = db.query(PassRequest).filter(PassRequest.id == request_id).first()
     if not db_request:
         raise HTTPException(
@@ -153,7 +163,6 @@ def update_request_status(
             detail=f"Заявка №{request_id} не найдена"
         )
 
-    # Проверка на возможность изменения статуса для обработанных заявок
     if db_request.status in [RequestStatus.APPROVED.value, RequestStatus.REJECTED.value]:
         if new_status == RequestStatus.PENDING:
             if current_user.role != UserRole.ADMIN.value:
@@ -168,15 +177,14 @@ def update_request_status(
             )
 
     db_request.status = new_status.value
-    
-    # Добавляем аудит-метку при изменении статуса
+
     audit_mark = f" [Обработал: {current_user.username} ({current_user.role})]"
     if db_request.purpose:
         if audit_mark not in db_request.purpose:
             db_request.purpose = db_request.purpose + audit_mark
     else:
         db_request.purpose = audit_mark
-    
+
     try:
         db.commit()
         db.refresh(db_request)
@@ -194,11 +202,6 @@ def delete_request(
     db: Session = Depends(get_db),
     current_user: User = Depends(admin_only)
 ):
-    """
-    Полное удаление заявки из системы.
-    СТРОГО ОГРАНИЧЕНО: Доступно исключительно Администратору.
-    Сотрудники Охраны и Операторы получат отказ в доступе.
-    """
     db_request = db.query(PassRequest).filter(PassRequest.id == request_id).first()
     if not db_request:
         raise HTTPException(
