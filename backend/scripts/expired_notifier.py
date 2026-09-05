@@ -19,10 +19,19 @@ def send_expired_notifications():
     ).all()
 
     for req in requests:
+        body = f"""
+*** ЗАЯВКА №{req.id} ИСТЕКЛА ***
+
+Компания: *** {req.company_name} ***
+
+Срок действия заявки истёк сегодня.
+
+Пожалуйста, примите меры.
+"""
         send_email(
             to=["security@zymk.ru"],
-            subject=f"⚠️ Заявка №{req.id} истекла",
-            body=f"Заявка №{req.id} на компанию {req.company_name} сегодня истекла."
+            subject=f"⚠️ ЗАЯВКА №{req.id} ИСТЕКЛА",
+            body=body.strip()
         )
 
     db.close()
