@@ -60,8 +60,8 @@ class PassVisitor(Base):
     id = Column(Integer, primary_key=True, index=True)
     request_id = Column(Integer, ForeignKey("pass_requests.id", ondelete="CASCADE"), nullable=False)
     full_name = Column(String(255), nullable=False, index=True)
-    passport_series = Column(String(10), nullable=False)
-    passport_number = Column(String(10), nullable=False)
+    passport_series = Column(String(10), nullable=True)
+    passport_number = Column(String(10), nullable=True)
     passport_issued_by = Column(Text, nullable=False)
     passport_issued_at = Column(DateTime, nullable=False)
 

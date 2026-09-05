@@ -146,7 +146,6 @@ async function fetchRequestDetails() {
         blankObject.innerText = parsed.object;
         blankPeriod.innerText = `${formatDateOnly(originalData.start_date)} по ${formatDateOnly(originalData.end_date)}`;
 
-        // === ИНДИКАТОР ДАТ ===
         const datesWarn = document.getElementById("datesWarnIndicatorPreview");
         if (originalData.dates_changed) {
             datesWarn.style.display = "inline-block";
@@ -175,7 +174,8 @@ function renderVisitorsPreview(visitors) {
         if (isPedestrian) {
             transport = `<span style="color: #dc2626; font-weight: 700;">ПЕШКОМ</span>`;
         }
-        html += `<p style="margin: 2px 0; font-size: 11px;">${v.full_name} (Паспорт: ${v.passport_series || ""} ${v.passport_number || ""}) / ${transport}</p>`;
+        const passport = v.passport_issued_by || "—";
+        html += `<p style="margin: 2px 0; font-size: 11px;">${v.full_name} (Паспорт: ${passport}) / ${transport}</p>`;
     });
     blankVisitorsContainer.innerHTML = html;
 }
@@ -200,10 +200,11 @@ function renderVisitorsTable(visitors) {
             transportDisplay = `<span style="text-decoration: line-through; color: #991b1b;">${transportDisplay}</span>`;
         }
         const isCarDisabled = !originalData.car_info ? "disabled" : "";
+        const passport = v.passport_issued_by || "—";
 
         html += `<tr class="${isExcluded ? 'excluded-row' : ''}">
             <td>${v.full_name}</td>
-            <td>${v.passport_series || ""} ${v.passport_number || ""}</td>
+            <td>${passport}</td>
             <td>${transportDisplay}</td>
             <td style="white-space:nowrap; text-align:center; vertical-align:middle;">
                 <div class="action-cell-inner">
@@ -229,7 +230,7 @@ function renderFullRequest() {
         if (isPedestrian) {
             transport = `<span style="color: #dc2626; font-weight: 700;">ПЕШКОМ</span>`;
         }
-        const passport = `${v.passport_series || ""} ${v.passport_number || ""}`.trim() || "—";
+        const passport = v.passport_issued_by || "—";
         tableRows += `<tr>
             <td style="border: 1px solid #000; padding: 4px; text-align: center;">${index}</td>
             <td style="border: 1px solid #000; padding: 4px;">${v.full_name}</td>
@@ -376,7 +377,6 @@ document.addEventListener("DOMContentLoaded", function() {
             viewPeriod.innerText = `${formatDateOnly(start)} по ${formatDateOnly(end)}`;
             blankPeriod.innerText = `${formatDateOnly(start)} по ${formatDateOnly(end)}`;
 
-            // === ПОКАЗЫВАЕМ ИНДИКАТОР СРАЗУ ===
             const datesWarn = document.getElementById("datesWarnIndicatorPreview");
             const origStart = originalData.start_date.split("T")[0];
             const origEnd = originalData.end_date.split("T")[0];

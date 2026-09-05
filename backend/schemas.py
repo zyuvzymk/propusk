@@ -7,8 +7,8 @@ from models import RequestStatus, UserRole
 class PassVisitorBase(BaseModel):
     position: Optional[str] = Field(None, max_length=255, description="Должность сотрудника")
     full_name: str = Field(..., min_length=2, max_length=255, description="ФИО посетителя")
-    passport_series: str = Field(..., min_length=4, max_length=10, description="Серия паспорта")
-    passport_number: str = Field(..., min_length=6, max_length=10, description="Номер паспорта")
+    passport_series: Optional[str] = Field(None, min_length=4, max_length=10, description="Серия паспорта")
+    passport_number: Optional[str] = Field(None, min_length=6, max_length=10, description="Номер паспорта")
     passport_issued_by: str = Field(..., min_length=1, description="Кем выдан паспорт")
     passport_issued_at: datetime = Field(..., description="Дата выдачи паспорта")
 
