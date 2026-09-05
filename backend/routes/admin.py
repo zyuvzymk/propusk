@@ -78,14 +78,25 @@ def update_and_approve_request(
             detail="Период действия временного пропуска не может превышать 31 день по регламенту СБ"
         )
 
-    db_request.status = payload.status.value
+    # === НОВАЯ ЛОГИКА ДАТ (сравнение только по датам) ===
+    old_start = db_request.original_start_date
+    old_end = db_request.original_end_date
+
+    # Обновляем текущие даты
+    db_request.current_start_date = payload.start_date
+    db_request.current_end_date = payload.end_date
+
+    # Сравниваем только даты (без времени)
+    db_request.dates_changed = (
+        old_start.date() != payload.start_date.date() or
+        old_end.date() != payload.end_date.date()
+    )
+
+    # Основные поля
     db_request.start_date = payload.start_date
     db_request.end_date = payload.end_date
+    db_request.status = payload.status.value
     db_request.car_info = payload.car_info
-    db_request.dates_changed = (
-        payload.start_date != db_request.start_date or
-        payload.end_date != db_request.end_date
-    )
 
     if payload.comment and payload.comment.strip():
         if " | Комментарий:" not in db_request.purpose:

@@ -9,7 +9,7 @@ class PassVisitorBase(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=255, description="ФИО посетителя")
     passport_series: str = Field(..., min_length=4, max_length=10, description="Серия паспорта")
     passport_number: str = Field(..., min_length=6, max_length=10, description="Номер паспорта")
-    passport_issued_by: str = Field(..., min_length=5, description="Кем выдан паспорт")
+    passport_issued_by: str = Field(..., min_length=1, description="Кем выдан паспорт")
     passport_issued_at: datetime = Field(..., description="Дата выдачи паспорта")
 
 class PassVisitorCreate(PassVisitorBase):
@@ -18,8 +18,6 @@ class PassVisitorCreate(PassVisitorBase):
 class PassVisitorOut(PassVisitorBase):
     id: int
     request_id: int
-    is_pedestrian: bool = False
-    is_excluded: bool = False
 
     class Config:
         from_attributes = True
@@ -33,11 +31,14 @@ class PassRequestBase(BaseModel):
     car_info: Optional[str] = Field(None, max_length=255, description="Данные автотранспорта (NULL если пешком)")
     start_date: datetime = Field(..., description="Дата начала действия пропуска")
     end_date: datetime = Field(..., description="Дата окончания действия пропуска")
+    original_start_date: Optional[datetime] = Field(None, description="Исходная дата начала из заявки")
+    original_end_date: Optional[datetime] = Field(None, description="Исходная дата окончания из заявки")
+    current_start_date: Optional[datetime] = Field(None, description="Текущая дата начала (после правок)")
+    current_end_date: Optional[datetime] = Field(None, description="Текущая дата окончания (после правок)")
 
     @field_validator('end_date')
     @classmethod
     def validate_dates(cls, v: datetime, info):
-        """Проверка, чтобы дата окончания не была раньше даты начала визита"""
         if 'start_date' in info.data and v < info.data['start_date']:
             raise ValueError('Дата окончания действия пропуска не может быть раньше даты начала')
         return v
@@ -75,7 +76,6 @@ class PassRequestUpdate(BaseModel):
     end_date: datetime = Field(..., description="Дата окончания действия пропуска")
     car_info: Optional[str] = Field(None, max_length=255, description="Данные автотранспорта")
     comment: Optional[str] = Field(None, description="Комментарий оператора или причина отказа")
-    dates_changed: Optional[bool] = Field(None, description="Флаг: изменены ли даты")
     pedestrian_ids: Optional[List[int]] = Field(None, description="Список ID посетителей, идущих пешком")
     excluded_ids: Optional[List[int]] = Field(None, description="Список ID исключённых посетителей")
     contractor: Optional[str] = Field(None, max_length=255, description="Подрядчик/субподрядчик")
